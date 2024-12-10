@@ -1,0 +1,23 @@
+# editor
+.vscode/
+
+# build and distribution files
+build/
+dist/
+src/pypformat.egg-info/
+
+# python virtual environment
+*venv*/
+
+# python files
+.tox/
+.pytest_cache/
+**/__pycache__/
+
+# code coverage
+.coverage*
+coverage.*
+coverage_*/
+
+# other
+tmp/
