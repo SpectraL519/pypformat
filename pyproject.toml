@@ -34,7 +34,7 @@ dev = []
 test = ["tox"]
 
 [project.urls]
-Repository = "https://github.com/SpectraL519/pyconstclasses.git"
+Repository = "https://github.com/SpectraL519/pypformat.git"
 
 
 [tool.setuptools.packages.find]
