@@ -25,38 +25,38 @@ class PrettyFormatter:
             ]
         )
 
-    def __call__(self, obj: Any, depth: int = 0) -> str:
-        return "\n".join(self._format_impl(obj, depth))
+    def __call__(self, obj: Any) -> str:
+        return "\n".join(self._format_impl(obj))
 
-    def format(self, obj: Any, depth: int = 0) -> str:
-        return "\n".join(self._format_impl(obj, depth))
+    def format(self, obj: Any) -> str:
+        return "\n".join(self._format_impl(obj))
 
-    def _format_impl(self, obj: Any, depth: int = 0) -> list[str]:
+    def _format_impl(self, obj: Any) -> list[str]:
         for t, formatter in self._formatters.items():
             if isinstance(obj, t):
-                return self._run_formatter(obj, formatter, depth)
+                return self._format_with(obj, formatter)
 
-        return self._run_formatter(obj, self._default_formatter, depth)
+        return self._format_with(obj, self._default_formatter)
 
-    def _run_formatter(
-        self, obj: Any, formatter: TypeSpecificFormatter, depth: int = 0
+    def _format_with(
+        self, obj: Any, formatter: TypeSpecificFormatter
     ) -> list[str]:
         if isinstance(formatter, MultilineFormatter):
             return formatter(obj)
 
-        return [formatter(obj)]
+        return formatter(obj).split("\n")
 
 
 class DefaultFormatter(NormalFormatter):
     def __call__(self, obj: Any, depth: int = 0) -> str:
-        return add_indent(str(obj), INDENT_WIDTH, depth)
+        return str(obj)
 
 
 class IterableFormatter(MultilineFormatter):
     def __init__(self, base_formatter: PrettyFormatter):
         self._base_formatter = base_formatter
 
-    def __call__(self, collection: Iterable, depth: int = 0) -> list[str]:
+    def __call__(self, collection: Iterable) -> list[str]:
         opening, closing = self._get_parens(collection)
 
         values = list()
@@ -64,7 +64,7 @@ class IterableFormatter(MultilineFormatter):
             values.extend(self._base_formatter._format_impl(value))
 
         values_fmt = add_indents(values, INDENT_WIDTH, 1)
-        return add_indents([opening, *values_fmt, closing], INDENT_WIDTH, depth)
+        return [opening, *values_fmt, closing]
 
     def _get_parens(self, collection: Iterable) -> tuple[str, str]:
         if isinstance(collection, list):
@@ -82,7 +82,7 @@ class MappingFormatter(MultilineFormatter):
     def __init__(self, base_formatter: PrettyFormatter):
         self._base_formatter = base_formatter
 
-    def __call__(self, mapping: Mapping, depth: int = 0) -> list[str]:
+    def __call__(self, mapping: Mapping) -> list[str]:
         values = list()
         for key, value in mapping.items():
             item_values_fmt = self._base_formatter._format_impl(value)
@@ -90,7 +90,7 @@ class MappingFormatter(MultilineFormatter):
             values.extend(item_values_fmt)
 
         values_fmt = add_indents(values, INDENT_WIDTH, 1)
-        return add_indents(["{", *values_fmt, "}"], INDENT_WIDTH, depth)
+        return ["{", *values_fmt, "}"]
 
 
 if __name__ == "__main__":
