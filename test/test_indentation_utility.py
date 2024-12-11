@@ -1,8 +1,8 @@
-import pytest
-
 from itertools import product
 
-from pformat.indentation_utility import indent_size, indent_str, DEFAULT_INDENT_CHARACTER
+import pytest
+
+from pformat.indentation_utility import DEFAULT_INDENT_CHARACTER, indent_size, indent_str
 
 INDENT_WIDTH_VALS = [1, 2, 3, 4]
 DEPTH_VASL = [0, 1, 2, 3]
