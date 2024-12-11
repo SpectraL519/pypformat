@@ -10,9 +10,10 @@ src/pypformat.egg-info/
 *venv*/
 
 # python files
-.tox/
-.pytest_cache/
 **/__pycache__/
+.pytest_cache/
+.tox/
+.ruff_cache/
 
 # code coverage
 .coverage*
