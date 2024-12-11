@@ -1,5 +1,3 @@
-import pytest
-
 from pformat.pretty_formatter import PrettyFormatter
 
 

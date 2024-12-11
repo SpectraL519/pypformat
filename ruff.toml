@@ -1,0 +1,28 @@
+line-length = 100
+indent-width = 4
+
+[format]
+indent-style = "space"
+quote-style = "double"
+docstring-code-format = true
+docstring-code-line-length = 100
+
+[lint]
+dummy-variable-rgx = "^(_+|.*dummy.*)$"
+extend-select = [
+    "I", # import checks
+]
+extend-safe-fixes = [
+    "E711", # https://www.flake8rules.com/rules/E711.html
+
+]
+
+[lint.extend-per-file-ignores]
+"__init__.py" = [
+    "F401", # https://www.flake8rules.com/rules/F401.html
+
+]
+"test_*.py" = [
+    "E731", # https://www.flake8rules.com/rules/E731.html
+
+]
