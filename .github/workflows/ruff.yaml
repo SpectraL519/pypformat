@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install ruff
+          python -m pip install ruff
 
       - name: Run ruff linter
         run: ruff check --no-cache
