@@ -20,49 +20,57 @@ class PrettyFormatter:
             [
                 (str, self._default_formatter),
                 (bytes, self._default_formatter),
+                (Mapping, MappingFormatter(self)),
                 (Iterable, IterableFormatter(self)),
             ]
         )
 
     def __call__(self, obj: Any, depth: int = 0) -> str:
-        for t, formatter in self._formatters.items():
-            if isinstance(obj, t):
-                return self._run_formatter(obj, formatter, depth)
-
-        return self._run_formatter(obj, self._default_formatter, depth)
+        return self._format_impl(obj, depth)
 
     def format(self, obj: Any, depth: int = 0) -> str:
-        return self(obj, depth)
+        return self._format_impl(obj, depth)
 
-    def _run_formatter(self, obj: Any, formatter: TypeSpecificFormatter, depth: int) -> str:
-        if isinstance(formatter, MultilineFormatter):
-            return "\n".join([add_indent(fmt, INDENT_WIDTH, depth) for fmt in formatter(obj)])
+    def _format_impl(self, obj: Any, depth: int = 0) -> str:
+        for t, formatter in self._formatters.items():
+            if isinstance(obj, t):
+                return formatter(obj, depth)
 
-        return add_indent(formatter(obj), INDENT_WIDTH, depth)
+        return self._default_formatter(obj, depth)
+
+    # def _run_formatter(self, obj: Any, formatter: TypeSpecificFormatter, depth: int) -> str:
+    #     if isinstance(formatter, MultilineFormatter):
+    #         return "\n".join([add_indent(fmt, INDENT_WIDTH, depth) for fmt in formatter(obj)])
+
+    #     return add_indent(formatter(obj), INDENT_WIDTH, depth)
 
 
 class DefaultFormatter(NormalFormatter):
     def __call__(self, obj: Any, depth: int = 0) -> str:
-        return add_indent(str(obj), INDENT_WIDTH, depth)
+        return str(obj)
 
 
-class IterableFormatter(MultilineFormatter):
+class IterableFormatter(NormalFormatter):
     def __init__(self, base_formatter: PrettyFormatter):
-        self._simple_types = (str, bytes)
         self._base_formatter = base_formatter
 
     def __call__(self, collection: Iterable, depth: int = 0) -> list[str]:
         opening, closing = self._get_parens(collection)
         nested_depth = depth + 1
 
-        for value in collection:
-            ic(value, self._base_formatter(value, nested_depth))
+        values_fmt = [
+            f"{add_indent(self._base_formatter(value, nested_depth), INDENT_WIDTH, nested_depth)},"
+            for value in collection
+        ]
 
-        values_fmt = [f"{self._base_formatter(value, nested_depth)}," for value in collection]
-
-        ic(collection, depth, values_fmt)
-
-        return [opening, *values_fmt, closing]
+        return "\n".join(
+            [
+                # add_indent(opening, INDENT_WIDTH, depth),
+                opening,
+                *values_fmt,
+                add_indent(closing, INDENT_WIDTH, depth),
+            ]
+        )
 
     def _get_parens(self, collection: Iterable) -> tuple[str, str]:
         if isinstance(collection, list):
@@ -76,37 +84,58 @@ class IterableFormatter(MultilineFormatter):
         return "![", "]!"
 
 
+class MappingFormatter(MultilineFormatter):
+    def __init__(self, base_formatter: PrettyFormatter):
+        self._base_formatter = base_formatter
+
+    def __call__(self, mapping: Mapping, depth: int = 0) -> list[str]:
+        nested_depth = depth + 1
+
+        values_fmt = [
+            add_indent(
+                f"{key}: {self._base_formatter(value, nested_depth)},", INDENT_WIDTH, nested_depth
+            )
+            for key, value in mapping.items()
+        ]
+
+        # ic(values_fmt, depth, nested_depth)
+        return "\n".join(
+            [
+                # add_indent("{", INDENT_WIDTH, depth),
+                "{",
+                *values_fmt,
+                add_indent("}", INDENT_WIDTH, depth),
+            ]
+        )
+
+
 if __name__ == "__main__":
-    import pickle
-    from pathlib import Path
-
     from icecream import ic
-
-    def load_data(path: Path) -> dict:
-        with open(path, "rb") as pickle_file:  # Open the file in binary read mode
-            return pickle.load(pickle_file)  # Load the data
 
     def separate():
         print("\n" + ("-" * 50))
 
-    ic(Path.cwd())
+    fmt = PrettyFormatter()
 
     separate()
 
     # data = load_data(Path.cwd().parent / "data/simple_list.pkl")
-    data = [
+    simple_list = [
         1,
         2,
-        # {"key3": 3, "key4": {"key5": 5, "key6": 6}},
+        {"key3": 3, "key4": {"key5": 5, "key6": 6}},
         {8, 7},
         frozenset({9, 10}),
         (11, 12),
         "string",
         b"f\xcd\x11",
     ]
-    ic(data)
+
+    ic(simple_list)
+    print(fmt(simple_list))
 
     separate()
 
-    fmt = PrettyFormatter()
-    print(fmt(data))
+    simple_dict = {"key3": 3, "key4": {"key5": 5, "key6": 6}}
+    ic(simple_dict)
+    print(fmt(simple_dict))
