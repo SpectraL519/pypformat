@@ -44,3 +44,4 @@ include = ["pformat"]
 [tool.pytest.ini_options]
 testpaths = ["test"]
 pythonpath = ["src"]
+addopts = "--ignore=test/test_dummy.py"
