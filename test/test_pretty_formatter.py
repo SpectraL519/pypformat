@@ -48,7 +48,7 @@ def gen_mapping(data: Iterable) -> dict:
 
 
 SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
-INDENT_WIDTH = FormatOptions.default("indent_width")
+INDENT_WIDTH_VALS = [2, 4]
 
 
 class DummyIterable:
@@ -63,16 +63,22 @@ class DummyIterable:
 
 
 class TestPrettyFormatterSimple:
-    @pytest.fixture
-    def sut(self):
-        return PrettyFormatter()
+    @pytest.fixture(params=INDENT_WIDTH_VALS, ids=[f"indent_width={v}" for v in INDENT_WIDTH_VALS])
+    def sut(self, request: pytest.FixtureRequest):
+        self.indent_width = request.param
+        return PrettyFormatter.new(indent_width=self.indent_width)
 
-    @pytest.mark.parametrize("data", SIMPLE_DATA)
-    def test_format_single_element(self, sut, data):
-        assert sut(data) == repr(data)
-        assert sut.format(data) == repr(data)
+    @pytest.mark.parametrize(
+        "element", SIMPLE_DATA, ids=[f"element={repr(v)}" for v in SIMPLE_DATA]
+    )
+    def test_format_single_element(self, sut, element):
+        assert sut(element) == repr(element)
+        assert sut.format(element) == repr(element)
 
-    @pytest.mark.parametrize("iterable_type", [list, set, frozenset, tuple, deque])
+    @pytest.mark.parametrize(
+        "iterable_type",
+        [list, set, frozenset, tuple, deque],
+    )
     def test_format_iterable(self, sut, iterable_type: type):
         collection = iterable_type(SIMPLE_DATA)
 
@@ -80,7 +86,11 @@ class TestPrettyFormatterSimple:
         assert (opening, closing) != ("![", "]!")
 
         expected_output = "\n".join(
-            [opening, *[f"{add_indent(sut(item), INDENT_WIDTH)}," for item in collection], closing]
+            [
+                opening,
+                *[f"{add_indent(sut(item), self.indent_width)}," for item in collection],
+                closing,
+            ]
         )
 
         assert sut(collection) == expected_output
@@ -89,7 +99,7 @@ class TestPrettyFormatterSimple:
     def test_format_unrecognized_iterable(self, sut):
         collection = DummyIterable()
         expected_output = "\n".join(
-            ["![", *[f"{add_indent(sut(item), INDENT_WIDTH)}," for item in collection], "]!"]
+            ["![", *[f"{add_indent(sut(item), self.indent_width)}," for item in collection], "]!"]
         )
 
         assert sut(collection) == expected_output
@@ -100,7 +110,7 @@ class TestPrettyFormatterSimple:
 
         expected_output = list()
         for key, value in mapping.items():
-            expected_output.append(add_indent(f"{sut(key)}: {sut(value)},", INDENT_WIDTH))
+            expected_output.append(add_indent(f"{sut(key)}: {sut(value)},", self.indent_width))
         expected_output = "\n".join(["{", *expected_output, "}"])
 
         assert sut(mapping) == expected_output
@@ -108,9 +118,12 @@ class TestPrettyFormatterSimple:
 
 
 class TestPrettyFormatterNestedStructures:
-    @pytest.fixture
-    def sut(self):
-        return PrettyFormatter()
+    @pytest.fixture(
+        params=INDENT_WIDTH_VALS, ids=[f"indent_width={value}" for value in INDENT_WIDTH_VALS]
+    )
+    def sut(self, request: pytest.FixtureRequest):
+        self.indent_width = request.param
+        return PrettyFormatter.new(indent_width=self.indent_width)
 
     @pytest.mark.parametrize("iterable_type", [list, tuple, deque])
     def test_format_nested_iterable(self, sut, iterable_type: type):
@@ -123,12 +136,12 @@ class TestPrettyFormatterNestedStructures:
         opening, closing = IterableFormatter.get_parens(collection)
         assert (opening, closing) != ("![", "]!")
 
-        expected_output = [f"{add_indent(sut(item), INDENT_WIDTH)}," for item in SIMPLE_DATA]
+        expected_output = [f"{add_indent(sut(item), self.indent_width)}," for item in SIMPLE_DATA]
         expected_output.extend(
             [
-                add_indent(opening, INDENT_WIDTH),
-                *[f"{add_indent(sut(item), INDENT_WIDTH, depth=2)}," for item in SIMPLE_DATA],
-                add_indent(f"{closing},", INDENT_WIDTH),
+                add_indent(opening, self.indent_width),
+                *[f"{add_indent(sut(item), self.indent_width, depth=2)}," for item in SIMPLE_DATA],
+                add_indent(f"{closing},", self.indent_width),
             ]
         )
         expected_output = "\n".join([opening, *expected_output, closing])
@@ -142,12 +155,12 @@ class TestPrettyFormatterNestedStructures:
         opening, closing = IterableFormatter.get_parens(collection)
         assert (opening, closing) == ("![", "]!")
 
-        expected_output = [f"{add_indent(sut(item), INDENT_WIDTH)}," for item in SIMPLE_DATA]
+        expected_output = [f"{add_indent(sut(item), self.indent_width)}," for item in SIMPLE_DATA]
         expected_output.extend(
             [
-                add_indent(opening, INDENT_WIDTH),
-                *[f"{add_indent(sut(item), INDENT_WIDTH, depth=2)}," for item in SIMPLE_DATA],
-                add_indent(f"{closing},", INDENT_WIDTH),
+                add_indent(opening, self.indent_width),
+                *[f"{add_indent(sut(item), self.indent_width, depth=2)}," for item in SIMPLE_DATA],
+                add_indent(f"{closing},", self.indent_width),
             ]
         )
         expected_output = "\n".join([opening, *expected_output, closing])
@@ -163,7 +176,7 @@ class TestPrettyFormatterNestedStructures:
         expected_simple_mapping_output = list()
         for key, value in gen_mapping(SIMPLE_DATA).items():
             expected_simple_mapping_output.append(
-                add_indent(f"{sut(key)}: {sut(value)},", INDENT_WIDTH)
+                add_indent(f"{sut(key)}: {sut(value)},", self.indent_width)
             )
 
         expected_nested_mapping_output = [
@@ -175,7 +188,7 @@ class TestPrettyFormatterNestedStructures:
             [
                 "{",
                 *expected_simple_mapping_output,
-                *add_indents(expected_nested_mapping_output, INDENT_WIDTH),
+                *add_indents(expected_nested_mapping_output, self.indent_width),
                 "}",
             ]
         )
