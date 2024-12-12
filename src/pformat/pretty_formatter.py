@@ -7,8 +7,6 @@ from typing import Any
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeSpecificFormatter
 from .indentation import add_indents
 
-TypeSpecificFormatterMapping = Mapping[type, TypeSpecificFormatter]
-
 INDENT_WIDTH = 4
 
 
