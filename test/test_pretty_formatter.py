@@ -45,3 +45,14 @@ class TestPrettyFormatterSimple:
 
         assert sut(collection) == expected_output
         assert sut.format(collection) == expected_output
+
+    def test_format_mapping(self, sut):
+        mapping = {f"key{i}": value for i, value in enumerate(SIMPLE_DATA)}
+
+        expected_output = list()
+        for key, value in mapping.items():
+            expected_output.append(add_indent(f"{sut(key)}: {sut(value)},", INDENT_WIDTH))
+        expected_output = "\n".join(["{", *expected_output, "}"])
+
+        assert sut(mapping) == expected_output
+        assert sut.format(mapping) == expected_output
