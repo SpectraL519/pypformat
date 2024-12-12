@@ -9,8 +9,14 @@ SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
 
 
 class DummyIterable:
+    def __init__(self, nested: bool = False):
+        if nested:
+            self.data = [*SIMPLE_DATA, DummyIterable()]
+        else:
+            self.data = SIMPLE_DATA
+
     def __iter__(self):
-        yield from [1, 2, 3]
+        yield from self.data
 
 
 class TestPrettyFormatterSimple:
@@ -24,7 +30,7 @@ class TestPrettyFormatterSimple:
         assert sut.format(data) == repr(data)
 
     @pytest.mark.parametrize("iterable_type", [list, set, frozenset, tuple, deque])
-    def test_format_iterable(self, sut, iterable_type):
+    def test_format_iterable(self, sut, iterable_type: type):
         collection = iterable_type(SIMPLE_DATA)
 
         opening, closing = IterableFormatter.get_parens(collection)
@@ -56,3 +62,52 @@ class TestPrettyFormatterSimple:
 
         assert sut(mapping) == expected_output
         assert sut.format(mapping) == expected_output
+
+
+class TestPrettyFormatterNestedStructures:
+    @pytest.fixture
+    def sut(self):
+        return PrettyFormatter()
+
+    @pytest.mark.parametrize("iterable_type", [list, tuple, deque])
+    def test_format_nested_iterable(self, sut, iterable_type: type):
+        """
+        Sets cannot have nested collections as its elements must be hashable
+        """
+
+        collection = iterable_type([*SIMPLE_DATA, iterable_type(SIMPLE_DATA)])
+
+        opening, closing = IterableFormatter.get_parens(collection)
+        assert (opening, closing) != ("![", "]!")
+
+        expected_output = [f"{add_indent(sut(item), INDENT_WIDTH)}," for item in SIMPLE_DATA]
+        expected_output.extend(
+            [
+                add_indent(opening, INDENT_WIDTH),
+                *[f"{add_indent(sut(item), INDENT_WIDTH, depth=2)}," for item in SIMPLE_DATA],
+                add_indent(f"{closing},", INDENT_WIDTH),
+            ]
+        )
+        expected_output = "\n".join([opening, *expected_output, closing])
+
+        assert sut(collection) == expected_output
+        assert sut.format(collection) == expected_output
+
+    def test_format_nested_unrecognized_iterable(self, sut):
+        collection = DummyIterable(nested=True)
+
+        opening, closing = IterableFormatter.get_parens(collection)
+        assert (opening, closing) == ("![", "]!")
+
+        expected_output = [f"{add_indent(sut(item), INDENT_WIDTH)}," for item in SIMPLE_DATA]
+        expected_output.extend(
+            [
+                add_indent(opening, INDENT_WIDTH),
+                *[f"{add_indent(sut(item), INDENT_WIDTH, depth=2)}," for item in SIMPLE_DATA],
+                add_indent(f"{closing},", INDENT_WIDTH),
+            ]
+        )
+        expected_output = "\n".join([opening, *expected_output, closing])
+
+        assert sut(collection) == expected_output
+        assert sut.format(collection) == expected_output
