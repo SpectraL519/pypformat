@@ -1,11 +1,16 @@
 from collections import deque
+from collections.abc import Iterable
 
 import pytest
 
-from pformat.indentation import add_indent
+from pformat.indentation import add_indent, add_indents
 from pformat.pretty_formatter import INDENT_WIDTH, IterableFormatter, PrettyFormatter
 
 SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
+
+
+def gen_mapping(data: Iterable) -> dict:
+    return {f"key{i}": value for i, value in enumerate(data)}
 
 
 class DummyIterable:
@@ -53,7 +58,7 @@ class TestPrettyFormatterSimple:
         assert sut.format(collection) == expected_output
 
     def test_format_mapping(self, sut):
-        mapping = {f"key{i}": value for i, value in enumerate(SIMPLE_DATA)}
+        mapping = gen_mapping(SIMPLE_DATA)
 
         expected_output = list()
         for key, value in mapping.items():
@@ -111,3 +116,31 @@ class TestPrettyFormatterNestedStructures:
 
         assert sut(collection) == expected_output
         assert sut.format(collection) == expected_output
+
+    def test_format_nested_mapping(self, sut):
+        mapping = gen_mapping(SIMPLE_DATA)
+        nested_key = "nested"
+        mapping[nested_key] = gen_mapping(SIMPLE_DATA)
+
+        expected_simple_mapping_output = list()
+        for key, value in gen_mapping(SIMPLE_DATA).items():
+            expected_simple_mapping_output.append(
+                add_indent(f"{sut(key)}: {sut(value)},", INDENT_WIDTH)
+            )
+
+        expected_nested_mapping_output = [
+            f"{sut(nested_key)}: {{",
+            *expected_simple_mapping_output,
+            "},",
+        ]
+        expected_output = "\n".join(
+            [
+                "{",
+                *expected_simple_mapping_output,
+                *add_indents(expected_nested_mapping_output, INDENT_WIDTH),
+                "}",
+            ]
+        )
+
+        assert sut(mapping) == expected_output
+        assert sut.format(mapping) == expected_output
