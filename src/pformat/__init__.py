@@ -1,3 +1,3 @@
-from .pretty_formatter import PrettyFormatter
 from .format_options import FormatOptions
-from .indentation import indent_size, indent_str, add_indent, add_indents
+from .indentation import add_indent, add_indents, indent_size, indent_str
+from .pretty_formatter import PrettyFormatter

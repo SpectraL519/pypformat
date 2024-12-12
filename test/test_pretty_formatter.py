@@ -8,8 +8,15 @@ from pformat.format_options import FormatOptions
 from pformat.indentation import add_indent, add_indents
 from pformat.pretty_formatter import IterableFormatter, PrettyFormatter
 
-SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
-INDENT_WIDTH = FormatOptions.default("indent_width")
+
+def test_iterable_formatter_get_parnens():
+    assert IterableFormatter.get_parens(list()) == ("[", "]")
+    assert IterableFormatter.get_parens(set()) == ("{", "}")
+    assert IterableFormatter.get_parens(frozenset()) == ("frozen{", "}")
+    assert IterableFormatter.get_parens(tuple()) == ("(", ")")
+    assert IterableFormatter.get_parens(range(3)) == ("(", ")")
+    assert IterableFormatter.get_parens(deque()) == ("deque([", "])")
+    assert IterableFormatter.get_parens(DummyIterable()) == ("![", "]!")
 
 
 class TestPrettyFormatterInitialization:
@@ -38,6 +45,10 @@ class TestPrettyFormatterInitialization:
 
 def gen_mapping(data: Iterable) -> dict:
     return {f"key{i}": value for i, value in enumerate(data)}
+
+
+SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
+INDENT_WIDTH = FormatOptions.default("indent_width")
 
 
 class DummyIterable:
@@ -171,13 +182,3 @@ class TestPrettyFormatterNestedStructures:
 
         assert sut(mapping) == expected_output
         assert sut.format(mapping) == expected_output
-
-
-def test_iterable_formatter_get_parnens():
-    assert IterableFormatter.get_parens(list()) == ("[", "]")
-    assert IterableFormatter.get_parens(set()) == ("{", "}")
-    assert IterableFormatter.get_parens(frozenset()) == ("frozen{", "}")
-    assert IterableFormatter.get_parens(tuple()) == ("(", ")")
-    assert IterableFormatter.get_parens(range(3)) == ("(", ")")
-    assert IterableFormatter.get_parens(deque()) == ("deque([", "])")
-    assert IterableFormatter.get_parens(DummyIterable()) == ("![", "]!")
