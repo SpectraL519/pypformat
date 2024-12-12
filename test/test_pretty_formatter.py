@@ -6,7 +6,10 @@ import pytest
 
 from pformat.format_options import FormatOptions
 from pformat.indentation import add_indent, add_indents
-from pformat.pretty_formatter import INDENT_WIDTH, IterableFormatter, PrettyFormatter
+from pformat.pretty_formatter import IterableFormatter, PrettyFormatter
+
+SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
+INDENT_WIDTH = FormatOptions.default("indent_width")
 
 
 class TestPrettyFormatterInitialization:
@@ -31,9 +34,6 @@ class TestPrettyFormatterInitialization:
 
         sut_new = PrettyFormatter.new(**asdict(custom_options))
         assert sut_new._options == custom_options
-
-
-SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
 
 
 def gen_mapping(data: Iterable) -> dict:
