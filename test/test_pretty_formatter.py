@@ -49,6 +49,8 @@ def gen_mapping(data: Iterable) -> dict:
 
 SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
 INDENT_WIDTH_VALS = [2, 4]
+RECOGNIZABLE_ITERABLE_TYPES = [list, set, frozenset, tuple, deque]
+RECOGNIZABLE_NHASH_ITERABLE_TYPES = [list, tuple, deque]
 
 
 class DummyIterable:
@@ -64,22 +66,19 @@ class DummyIterable:
 
 class TestPrettyFormatterSimple:
     @pytest.fixture(params=INDENT_WIDTH_VALS, ids=[f"indent_width={v}" for v in INDENT_WIDTH_VALS])
-    def sut(self, request: pytest.FixtureRequest):
+    def sut(self, request: pytest.FixtureRequest) -> PrettyFormatter:
         self.indent_width = request.param
         return PrettyFormatter.new(indent_width=self.indent_width)
 
     @pytest.mark.parametrize(
         "element", SIMPLE_DATA, ids=[f"element={repr(v)}" for v in SIMPLE_DATA]
     )
-    def test_format_single_element(self, sut, element):
+    def test_format_single_element(self, sut: PrettyFormatter, element):
         assert sut(element) == repr(element)
         assert sut.format(element) == repr(element)
 
-    @pytest.mark.parametrize(
-        "iterable_type",
-        [list, set, frozenset, tuple, deque],
-    )
-    def test_format_iterable(self, sut, iterable_type: type):
+    @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_ITERABLE_TYPES)
+    def test_format_iterable(self, sut: PrettyFormatter, iterable_type: type):
         collection = iterable_type(SIMPLE_DATA)
 
         opening, closing = IterableFormatter.get_parens(collection)
@@ -118,15 +117,13 @@ class TestPrettyFormatterSimple:
 
 
 class TestPrettyFormatterNestedStructures:
-    @pytest.fixture(
-        params=INDENT_WIDTH_VALS, ids=[f"indent_width={value}" for value in INDENT_WIDTH_VALS]
-    )
-    def sut(self, request: pytest.FixtureRequest):
+    @pytest.fixture(params=INDENT_WIDTH_VALS, ids=[f"indent_width={v}" for v in INDENT_WIDTH_VALS])
+    def sut(self, request: pytest.FixtureRequest) -> PrettyFormatter:
         self.indent_width = request.param
         return PrettyFormatter.new(indent_width=self.indent_width)
 
-    @pytest.mark.parametrize("iterable_type", [list, tuple, deque])
-    def test_format_nested_iterable(self, sut, iterable_type: type):
+    @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_NHASH_ITERABLE_TYPES)
+    def test_format_nested_iterable(self, sut: PrettyFormatter, iterable_type: type):
         """
         Sets cannot have nested collections as its elements must be hashable
         """
@@ -191,6 +188,47 @@ class TestPrettyFormatterNestedStructures:
                 *add_indents(expected_nested_mapping_output, self.indent_width),
                 "}",
             ]
+        )
+
+        assert sut(mapping) == expected_output
+        assert sut.format(mapping) == expected_output
+
+
+class TestPrettyFormatterCompact:
+    @pytest.fixture
+    def sut(self) -> PrettyFormatter:
+        return PrettyFormatter.new(
+            compact=True,
+            width=None,
+        )
+
+    @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_ITERABLE_TYPES)
+    def test_format_iterable(self, sut: PrettyFormatter, iterable_type: type):
+        collection = iterable_type(SIMPLE_DATA)
+
+        opening, closing = IterableFormatter.get_parens(collection)
+        assert (opening, closing) != ("![", "]!")
+
+        expected_output = opening + ", ".join(repr(value) for value in collection) + closing
+
+        assert sut(collection) == expected_output
+        assert sut.format(collection) == expected_output
+
+    def test_format_unrecognized_iterable(self, sut: PrettyFormatter):
+        collection = DummyIterable()
+
+        opening, closing = IterableFormatter.get_parens(collection)
+        assert (opening, closing) == ("![", "]!")
+
+        expected_output = opening + ", ".join(repr(value) for value in collection) + closing
+
+        assert sut(collection) == expected_output
+        assert sut.format(collection) == expected_output
+
+    def test_format_mapping(self, sut: PrettyFormatter):
+        mapping = gen_mapping(SIMPLE_DATA)
+        expected_output = (
+            "{" + ", ".join(f"{repr(key)}: {repr(value)}" for key, value in mapping.items()) + "}"
         )
 
         assert sut(mapping) == expected_output
