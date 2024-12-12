@@ -4,6 +4,7 @@ from collections import OrderedDict, deque
 from collections.abc import Iterable, Mapping
 from typing import Any
 
+from .format_options import FormatOptions
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeSpecificFormatter
 from .indentation import add_indents
 
@@ -11,9 +12,9 @@ INDENT_WIDTH = 4
 
 
 class PrettyFormatter:
-    def __init__(self):
+    def __init__(self, options: FormatOptions = FormatOptions()):
+        self._options = options
         self._default_formatter = DefaultFormatter()
-
         self._formatters = OrderedDict(
             [
                 (str, self._default_formatter),
@@ -21,6 +22,20 @@ class PrettyFormatter:
                 (Mapping, MappingFormatter(self)),
                 (Iterable, IterableFormatter(self)),
             ]
+        )
+
+    @staticmethod
+    def new(
+        width: int = FormatOptions.default("width"),
+        indent_width: int = FormatOptions.default("indent_width"),
+        compact: int = FormatOptions.default("compact"),
+    ) -> PrettyFormatter:
+        return PrettyFormatter(
+            options=FormatOptions(
+                width=width,
+                indent_width=indent_width,
+                compact=compact,
+            )
         )
 
     def __call__(self, obj: Any) -> str:

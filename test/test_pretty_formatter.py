@@ -1,10 +1,37 @@
 from collections import deque
 from collections.abc import Iterable
+from dataclasses import asdict
 
 import pytest
 
+from pformat.format_options import FormatOptions
 from pformat.indentation import add_indent, add_indents
 from pformat.pretty_formatter import INDENT_WIDTH, IterableFormatter, PrettyFormatter
+
+
+class TestPrettyFormatterInitialization:
+    def test_default_init(self):
+        "Should be initialized with the default format options"
+
+        sut = PrettyFormatter()
+        assert sut._options == FormatOptions()
+
+        sut_new = PrettyFormatter.new()
+        assert sut_new._options == FormatOptions()
+
+    def test_custom_init(self):
+        custom_options = FormatOptions(
+            width=100,
+            indent_width=3,
+            compact=True,
+        )
+
+        sut = PrettyFormatter(custom_options)
+        assert sut._options == custom_options
+
+        sut_new = PrettyFormatter.new(**asdict(custom_options))
+        assert sut_new._options == custom_options
+
 
 SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
 

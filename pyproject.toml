@@ -30,8 +30,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["ruff", "icecream"]
-test = [ "pytest", "tox"]
+dev = ["ruff", "icecream", "pytest", "tox"]
 
 [project.urls]
 Repository = "https://github.com/SpectraL519/pypformat.git"

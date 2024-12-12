@@ -7,7 +7,7 @@ on:
       - .github/workflows/tests.yaml
       - src/**
       - test/**
-      - tox.ini
+      - pyproject.toml
 
 jobs:
   run_tests:
