@@ -5,7 +5,7 @@ from collections.abc import Iterable, Mapping
 from typing import Any
 
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeSpecificFormatter
-from .indentation import add_indent, add_indents
+from .indentation import add_indents
 
 TypeSpecificFormatterMapping = Mapping[type, TypeSpecificFormatter]
 
@@ -38,9 +38,7 @@ class PrettyFormatter:
 
         return self._format_with(obj, self._default_formatter)
 
-    def _format_with(
-        self, obj: Any, formatter: TypeSpecificFormatter
-    ) -> list[str]:
+    def _format_with(self, obj: Any, formatter: TypeSpecificFormatter) -> list[str]:
         if isinstance(formatter, MultilineFormatter):
             return formatter(obj)
 
@@ -49,7 +47,7 @@ class PrettyFormatter:
 
 class DefaultFormatter(NormalFormatter):
     def __call__(self, obj: Any, depth: int = 0) -> str:
-        return str(obj)
+        return repr(obj)
 
 
 class IterableFormatter(MultilineFormatter):
@@ -57,16 +55,19 @@ class IterableFormatter(MultilineFormatter):
         self._base_formatter = base_formatter
 
     def __call__(self, collection: Iterable) -> list[str]:
-        opening, closing = self._get_parens(collection)
+        opening, closing = IterableFormatter.get_parens(collection)
 
         values = list()
         for value in collection:
-            values.extend(self._base_formatter._format_impl(value))
+            v_fmt = self._base_formatter._format_impl(value)
+            v_fmt[-1] = f"{v_fmt[-1]},"
+            values.extend(v_fmt)
 
         values_fmt = add_indents(values, INDENT_WIDTH, 1)
         return [opening, *values_fmt, closing]
 
-    def _get_parens(self, collection: Iterable) -> tuple[str, str]:
+    @staticmethod
+    def get_parens(collection: Iterable) -> tuple[str, str]:
         if isinstance(collection, list):
             return "[", "]"
         if isinstance(collection, set):
@@ -85,8 +86,10 @@ class MappingFormatter(MultilineFormatter):
     def __call__(self, mapping: Mapping) -> list[str]:
         values = list()
         for key, value in mapping.items():
+            key_fmt = self._base_formatter(key)
             item_values_fmt = self._base_formatter._format_impl(value)
-            item_values_fmt[0] = f"{key}: {item_values_fmt[0]}"
+            item_values_fmt[0] = f"{key_fmt}: {item_values_fmt[0]}"
+            item_values_fmt[-1] = f"{item_values_fmt[-1]},"
             values.extend(item_values_fmt)
 
         values_fmt = add_indents(values, INDENT_WIDTH, 1)
