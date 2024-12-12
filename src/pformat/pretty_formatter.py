@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from collections.abc import Iterable, Mapping
 from typing import Any
 
@@ -76,6 +76,8 @@ class IterableFormatter(MultilineFormatter):
             return "frozen{", "}"
         if isinstance(collection, tuple) or isinstance(collection, range):
             return "(", ")"
+        if isinstance(collection, deque):
+            return "deque([", "])"
         return "![", "]!"
 
 
