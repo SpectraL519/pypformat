@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pypformat"
-version = "0.2"
+version = "0.3"
 description = "Python pretty formatting package"
 authors = [
   {name = "SpectraL519"}
