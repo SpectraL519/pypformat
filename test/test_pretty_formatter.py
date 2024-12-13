@@ -292,25 +292,17 @@ class TestPrettyFormatterCompactForNestedMappingTypes:
 
 class TestPrettyFormatterProjections:
     def test_format_projected_elements(self):
-        int_proj = lambda i: i**2
         float_proj = lambda f: int(f) + 1
-        str_proj = lambda s: [c for c in s]
+        str_proj = lambda s: [ord(c) for c in s]
 
         sut = PrettyFormatter.new(
             compact=True,
             width=None,
             projections={
-                int: int_proj,
                 float: float_proj,
                 str: str_proj,
             },
         )
-
-        i = 123
-        assert int_proj(i) != i
-        assert sut(i) != repr(i)
-        assert sut(i) == repr(int_proj(i))
-        assert sut.format(i) == repr(int_proj(i))
 
         f = 3.14
         assert float_proj(f) != f

@@ -104,7 +104,9 @@ class IterableFormatter(MultilineFormatter):
         opening, closing = IterableFormatter.get_parens(collection)
 
         if self._options.compact:
-            collecion_str = opening + ", ".join(repr(value) for value in collection) + closing
+            collecion_str = (
+                opening + ", ".join(self._base_formatter(value) for value in collection) + closing
+            )
             collecion_str_len = len(collecion_str) + indent_size(self._options.indent_width, depth)
             if self._options.width is None or collecion_str_len <= self._options.width:
                 return [collecion_str]
@@ -147,7 +149,10 @@ class MappingFormatter(MultilineFormatter):
         if self._options.compact:
             mapping_str = (
                 "{"
-                + ", ".join(f"{repr(key)}: {repr(value)}" for key, value in mapping.items())
+                + ", ".join(
+                    f"{self._base_formatter(key)}: {self._base_formatter(value)}"
+                    for key, value in mapping.items()
+                )
                 + "}"
             )
             collecion_str_len = len(mapping_str) + indent_size(self._options.indent_width, depth)
