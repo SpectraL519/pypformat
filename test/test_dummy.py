@@ -10,10 +10,18 @@ the behaviour of PrettyFormatter
 
 FMT_OPTIONS = {
     "default": FormatOptions(),
-    "custom": FormatOptions(
+    "compact": FormatOptions(
         width=40,
         indent_width=3,
         compact=True,
+    ),
+    "custom - projections": FormatOptions(
+        width=40,
+        compact=True,
+        projections={
+            float: lambda f: int(f),
+            bytes: lambda b: bytearray(b),
+        },
     ),
 }
 

@@ -16,6 +16,7 @@ def test_iterable_formatter_get_parnens():
     assert IterableFormatter.get_parens(frozenset()) == ("frozen{", "}")
     assert IterableFormatter.get_parens(tuple()) == ("(", ")")
     assert IterableFormatter.get_parens(range(3)) == ("(", ")")
+    assert IterableFormatter.get_parens(bytearray()) == ("bytearray(", ")")
     assert IterableFormatter.get_parens(deque()) == ("deque([", "])")
     assert IterableFormatter.get_parens(DummyIterable()) == ("![", "]!")
 

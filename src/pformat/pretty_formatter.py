@@ -128,6 +128,8 @@ class IterableFormatter(MultilineFormatter):
             return "frozen{", "}"
         if isinstance(collection, tuple) or isinstance(collection, range):
             return "(", ")"
+        if isinstance(collection, bytearray):
+            return "bytearray(", ")"
         if isinstance(collection, deque):
             return "deque([", "])"
         return "![", "]!"
