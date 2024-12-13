@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from collections import OrderedDict, deque
 from collections.abc import Iterable, Mapping
-from typing import Any
+from typing import Any, Optional
 
-from .format_options import FormatOptions
+from .format_options import FormatOptions, TypeProjectionMapping
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeSpecificFormatter
 from .indentation import add_indents, indent_size
 
@@ -27,12 +27,14 @@ class PrettyFormatter:
         width: int = FormatOptions.default("width"),
         indent_width: int = FormatOptions.default("indent_width"),
         compact: int = FormatOptions.default("compact"),
+        projections: Optional[TypeProjectionMapping] = FormatOptions.default("projections"),
     ) -> PrettyFormatter:
         return PrettyFormatter(
             options=FormatOptions(
                 width=width,
                 indent_width=indent_width,
                 compact=compact,
+                projections=projections,
             )
         )
 
@@ -43,17 +45,29 @@ class PrettyFormatter:
         return "\n".join(self._format_impl(obj, depth))
 
     def _format_impl(self, obj: Any, depth: int = 0) -> list[str]:
+        projected_obj = self._project(obj)
+
         for t, formatter in self._formatters.items():
             if isinstance(obj, t):
-                return self._format_with(obj, formatter, depth)
+                return self._format_with(projected_obj, formatter, depth)
 
-        return self._format_with(obj, self._default_formatter, depth)
+        return self._format_with(projected_obj, self._default_formatter, depth)
 
     def _format_with(self, obj: Any, formatter: TypeSpecificFormatter, depth: int = 0) -> list[str]:
         if isinstance(formatter, MultilineFormatter):
             return formatter(obj, depth)
 
         return formatter(obj, depth).split("\n")
+
+    def _project(self, obj: Any) -> Any:
+        if self._options.projections is None:
+            return obj
+
+        for t, projection in self._options.projections.items():
+            if isinstance(obj, t):
+                return projection(obj)
+
+        return obj
 
 
 class DefaultFormatter(NormalFormatter):

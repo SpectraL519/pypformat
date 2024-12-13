@@ -1,16 +1,18 @@
-from dataclasses import MISSING, dataclass
-from typing import Any
+from collections.abc import Mapping
+from dataclasses import dataclass
+from typing import Any, Callable, Optional
+
+TypeProjection = Callable[[object], Any]
+TypeProjectionMapping = Mapping[type, TypeProjection]
 
 
 @dataclass
 class FormatOptions:
-    width: int = 80
+    width: Optional[int] = 80
     indent_width: int = 4
     compact: bool = False
+    projections: Optional[TypeProjectionMapping] = None
 
     @staticmethod
     def default(opt_name: str) -> Any:
-        field = FormatOptions.__dataclass_fields__[opt_name]
-        if field.default_factory is not MISSING:
-            return field.default_factory()
-        return field.default
+        return FormatOptions.__dataclass_fields__[opt_name].default

@@ -286,3 +286,49 @@ class TestPrettyFormatterCompactForNestedMappingTypes:
 
         assert sut(mapping) == expected_output
         assert sut.format(mapping) == expected_output
+
+
+class TestPrettyFormatterProjections:
+    def test_format_projected_elements(self):
+        int_proj = lambda i: i**2
+        float_proj = lambda f: int(f) + 1
+        str_proj = lambda s: [c for c in s]
+
+        sut = PrettyFormatter.new(
+            compact=True,
+            width=None,
+            projections={
+                int: int_proj,
+                float: float_proj,
+                str: str_proj,
+            },
+        )
+
+        i = 123
+        assert int_proj(i) != i
+        assert sut(i) != repr(i)
+        assert sut(i) == repr(int_proj(i))
+        assert sut.format(i) == repr(int_proj(i))
+
+        f = 3.14
+        assert float_proj(f) != f
+        assert sut(f) != repr(f)
+        assert sut(f) == repr(float_proj(f))
+        assert sut.format(f) == repr(float_proj(f))
+
+        s = "string"
+        assert str_proj(s) != s
+        assert sut(s) != repr(s)
+        assert sut(s) == repr(str_proj(s))
+        assert sut.format(s) == repr(str_proj(s))
+
+    def test_format_projected_elements_with_no_matchin_projection(self):
+        sut = PrettyFormatter.new(
+            compact=True,
+            width=None,
+            projections=dict(),
+        )
+
+        f = 3.14
+        assert sut(f) == repr(f)
+        assert sut.format(f) == repr(f)
