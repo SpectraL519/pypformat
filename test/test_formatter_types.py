@@ -25,7 +25,7 @@ class InvalidType:
     pass
 
 
-class TestTypeFormatterRepr:
+class TestTypeFormatterCommon:
     FORMATTER_TYPES = (TypeFormatter, NormalFormatter, MultilineFormatter)
 
     @pytest.fixture(autouse=True, params=TYPES_KEYS, ids=[f"t={t.__name__}" for t in TYPES_KEYS])
@@ -41,6 +41,33 @@ class TestTypeFormatterRepr:
         sut = fmt_type(self.type)
         assert repr(sut) == f"{fmt_type.__name__}({self.type.__name__})"
 
+    @pytest.mark.parametrize(
+        "fmt_type",
+        FORMATTER_TYPES,
+        ids=[f"fmt_type={fmt_type.__name__}" for fmt_type in FORMATTER_TYPES],
+    )
+    def test_eq_with_non_formatter_type(self, fmt_type: type):
+        sut = fmt_type(self.type)
+
+        with pytest.raises(TypeError) as err:
+            sut == InvalidType()
+
+        assert (
+            str(err.value)
+            == f"Cannot compare a `{fmt_type.__name__}` instance to an instance of `InvalidType`"
+        )
+
+    @pytest.mark.parametrize(
+        "fmt_type",
+        FORMATTER_TYPES,
+        ids=[f"fmt_type={fmt_type.__name__}" for fmt_type in FORMATTER_TYPES],
+    )
+    def test_eq_with_valid_formatter_type(self, fmt_type: type):
+        sut = fmt_type(self.type)
+
+        assert all(sut == ft(self.type) for ft in TestTypeFormatterCommon.FORMATTER_TYPES)
+        assert all(sut != ft(InvalidType) for ft in TestTypeFormatterCommon.FORMATTER_TYPES)
+
 
 class TestTypeFormatter:
     @pytest.fixture(params=TYPES_KEYS, ids=[f"t={t.__name__}" for t in TYPES_KEYS])
@@ -55,10 +82,14 @@ class TestTypeFormatter:
         assert str(err.value) == f"{repr(sut)}.__call__ is not implemented"
 
     def test_check_type_invalid(self, sut: TypeFormatter):
+        invalid_value = InvalidType()
         with pytest.raises(TypeError) as err:
-            sut._check_type(InvalidType())
+            sut._check_type(invalid_value)
 
-        assert str(err.value) == f"[{repr(sut)}] Cannot format an object of type `InvalidType`"
+        assert (
+            str(err.value)
+            == f"[{repr(sut)}] Cannot format an object of type `InvalidType` - `{str(invalid_value)}`"
+        )
 
     def test_check_type_valid(self, sut: TypeFormatter):
         assert_does_not_throw(sut._check_type, self.type())
@@ -72,10 +103,14 @@ class TestCustomNormalFormatter:
         return CustomNormalFormatter(self.type, self.fmt_func)
 
     def test_call_with_invalid_type(self, sut: CustomNormalFormatter):
+        invalid_value = InvalidType()
         with pytest.raises(TypeError) as err:
-            sut(InvalidType())
+            sut(invalid_value)
 
-        assert str(err.value) == f"[{repr(sut)}] Cannot format an object of type `InvalidType`"
+        assert (
+            str(err.value)
+            == f"[{repr(sut)}] Cannot format an object of type `InvalidType` - `{str(invalid_value)}`"
+        )
 
     def test_call_with_correct_type(self, sut: CustomNormalFormatter):
         value = TYPES_DICT[self.type]
@@ -90,10 +125,14 @@ class TestCustomMultilineFormatter:
         return CustomMultilineFormatter(self.type, self.fmt_func)
 
     def test_call_with_invalid_type(self, sut: CustomMultilineFormatter):
+        invalid_value = InvalidType()
         with pytest.raises(TypeError) as err:
-            sut(InvalidType())
+            sut(invalid_value)
 
-        assert str(err.value) == f"[{repr(sut)}] Cannot format an object of type `InvalidType`"
+        assert (
+            str(err.value)
+            == f"[{repr(sut)}] Cannot format an object of type `InvalidType` - `{str(invalid_value)}`"
+        )
 
     def test_call_with_correct_type(self, sut: CustomMultilineFormatter):
         value = TYPES_DICT[self.type]

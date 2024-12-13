@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from .common_types import TypeFormatterFuncMapping, TypeProjectionFuncMapping
+from .common_types import TypeFormatterFuncSequence, TypeProjectionFuncMapping
 
 
 @dataclass
@@ -10,7 +10,7 @@ class FormatOptions:
     indent_width: int = 4
     compact: bool = False
     projections: Optional[TypeProjectionFuncMapping] = None
-    formatters: Optional[TypeFormatterFuncMapping] = None
+    formatters: Optional[TypeFormatterFuncSequence] = None
 
     @staticmethod
     def default(opt_name: str) -> Any:

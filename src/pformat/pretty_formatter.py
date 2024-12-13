@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from collections import OrderedDict, deque
+from collections import deque
 from collections.abc import Iterable, Mapping
 from typing import Any, Optional
 
-from .format_options import FormatOptions, TypeFormatterFuncMapping, TypeProjectionFuncMapping
+from .format_options import FormatOptions, TypeFormatterFuncSequence, TypeProjectionFuncMapping
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeFormatter
 from .indentation import add_indents, indent_size
 
@@ -14,18 +14,14 @@ class PrettyFormatter:
         self,
         options: FormatOptions = FormatOptions(),
     ):
-        self._options = options
-        # TODO: align the formatters parameter
+        self._options: FormatOptions = options
+
+        self._formatters = self._options.formatters or list()
+        for formatter in self.__predefined_formatters():
+            if formatter not in self._formatters:
+                self._formatters.append(formatter)
 
         self._default_formatter = DefaultFormatter()
-        self._formatters = OrderedDict(
-            [
-                (str, self._default_formatter),
-                (bytes, self._default_formatter),
-                (Mapping, MappingFormatter(self)),
-                (Iterable, IterableFormatter(self)),
-            ]
-        )
 
     @staticmethod
     def new(
@@ -33,7 +29,7 @@ class PrettyFormatter:
         indent_width: int = FormatOptions.default("indent_width"),
         compact: int = FormatOptions.default("compact"),
         projections: Optional[TypeProjectionFuncMapping] = FormatOptions.default("projections"),
-        formatters: Optional[TypeFormatterFuncMapping] = FormatOptions.default("formatters"),
+        formatters: Optional[TypeFormatterFuncSequence] = FormatOptions.default("formatters"),
     ) -> PrettyFormatter:
         return PrettyFormatter(
             options=FormatOptions(
@@ -54,8 +50,8 @@ class PrettyFormatter:
     def _format_impl(self, obj: Any, depth: int = 0) -> list[str]:
         projected_obj = self._project(obj)
 
-        for t, formatter in self._formatters.items():
-            if isinstance(obj, t):
+        for formatter in self._formatters:
+            if formatter.is_valid(projected_obj):
                 return self._format_with(projected_obj, formatter, depth)
 
         return self._format_with(projected_obj, self._default_formatter, depth)
@@ -76,12 +72,23 @@ class PrettyFormatter:
 
         return obj
 
+    def __predefined_formatters(self) -> list[TypeFormatter]:
+        return [
+            DefaultFormatter(str),
+            DefaultFormatter(bytes),
+            MappingFormatter(self),
+            IterableFormatter(self),
+        ]
+
 
 class DefaultFormatter(NormalFormatter):
-    def __init__(self):
-        super().__init__(Any)
+    def __init__(self, t: type = Any):
+        super().__init__(t)
 
     def __call__(self, obj: Any, depth: int = 0) -> str:
+        if self.type is not Any:
+            self._check_type(obj)
+
         return repr(obj)
 
 
