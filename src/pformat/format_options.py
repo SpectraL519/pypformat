@@ -1,9 +1,7 @@
-from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
-TypeProjection = Callable[[object], Any]
-TypeProjectionMapping = Mapping[type, TypeProjection]
+from .common_types import TypeFormatterFuncMapping, TypeProjectionFuncMapping
 
 
 @dataclass
@@ -11,7 +9,8 @@ class FormatOptions:
     width: Optional[int] = 80
     indent_width: int = 4
     compact: bool = False
-    projections: Optional[TypeProjectionMapping] = None
+    projections: Optional[TypeProjectionFuncMapping] = None
+    formatters: Optional[TypeFormatterFuncMapping] = None
 
     @staticmethod
     def default(opt_name: str) -> Any:

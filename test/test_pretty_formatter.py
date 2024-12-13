@@ -332,3 +332,8 @@ class TestPrettyFormatterProjections:
         f = 3.14
         assert sut(f) == repr(f)
         assert sut.format(f) == repr(f)
+
+
+class TestPrettyFormatterCustomFormatters():
+    def test_format_elements_with_overriden_formatters(self):
+        sut = PrettyFormatter
