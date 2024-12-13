@@ -1,3 +1,6 @@
+from itertools import product
+from typing import Any
+
 import pytest
 
 from pformat.formatter_types import (
@@ -6,6 +9,8 @@ from pformat.formatter_types import (
     MultilineFormatter,
     NormalFormatter,
     TypeFormatter,
+    multiline_formatter,
+    normal_formatter,
 )
 
 from .conftest import assert_does_not_throw
@@ -18,7 +23,7 @@ TYPES_DICT = {
     list: [1, 2, 3],
     dict: {"k1": 1, "k2": 2},
 }
-TYPES_KEYS = list(TYPES_DICT.keys())
+TYPES = list(TYPES_DICT.keys())
 
 
 class InvalidType:
@@ -28,49 +33,51 @@ class InvalidType:
 class TestTypeFormatterCommon:
     FORMATTER_TYPES = (TypeFormatter, NormalFormatter, MultilineFormatter)
 
-    @pytest.fixture(autouse=True, params=TYPES_KEYS, ids=[f"t={t.__name__}" for t in TYPES_KEYS])
+    @pytest.fixture(
+        autouse=True,
+        params=product(FORMATTER_TYPES, TYPES),
+        ids=[
+            f"fmt_type={fmt_t.__name__},t={t.__name__}"
+            for fmt_t, t in product(FORMATTER_TYPES, TYPES)
+        ],
+    )
     def set_type_param(self, request: pytest.FixtureRequest) -> TypeFormatter:
-        self.type = request.param
+        self.fmt_type, self.type = request.param
 
-    @pytest.mark.parametrize(
-        "fmt_type",
-        FORMATTER_TYPES,
-        ids=[f"fmt_type={fmt_type.__name__}" for fmt_type in FORMATTER_TYPES],
-    )
-    def test_repr(self, fmt_type: type):
-        sut = fmt_type(self.type)
-        assert repr(sut) == f"{fmt_type.__name__}({self.type.__name__})"
-
-    @pytest.mark.parametrize(
-        "fmt_type",
-        FORMATTER_TYPES,
-        ids=[f"fmt_type={fmt_type.__name__}" for fmt_type in FORMATTER_TYPES],
-    )
-    def test_eq_with_non_formatter_type(self, fmt_type: type):
-        sut = fmt_type(self.type)
+    def test_eq_with_non_formatter_type(self):
+        sut = self.fmt_type(self.type)
 
         with pytest.raises(TypeError) as err:
             sut == InvalidType()
 
         assert (
             str(err.value)
-            == f"Cannot compare a `{fmt_type.__name__}` instance to an instance of `InvalidType`"
+            == f"Cannot compare a `{self.fmt_type.__name__}` instance to an instance of `InvalidType`"
         )
 
-    @pytest.mark.parametrize(
-        "fmt_type",
-        FORMATTER_TYPES,
-        ids=[f"fmt_type={fmt_type.__name__}" for fmt_type in FORMATTER_TYPES],
-    )
-    def test_eq_with_valid_formatter_type(self, fmt_type: type):
-        sut = fmt_type(self.type)
+    def test_eq_with_valid_formatter_type(self):
+        sut = self.fmt_type(self.type)
 
         assert all(sut == ft(self.type) for ft in TestTypeFormatterCommon.FORMATTER_TYPES)
         assert all(sut != ft(InvalidType) for ft in TestTypeFormatterCommon.FORMATTER_TYPES)
 
+    def test_repr(self):
+        sut = self.fmt_type(self.type)
+        assert repr(sut) == f"{self.fmt_type.__name__}({self.type.__name__})"
+
+    def test_is_valid_with_concrete_type(self):
+        sut = self.fmt_type(self.type)
+        assert sut.is_valid(self.type())
+        assert not sut.is_valid(InvalidType())
+
+    def test_is_valid_with_any_type(self):
+        sut = self.fmt_type(Any)
+        assert sut.is_valid(self.type())
+        assert sut.is_valid(InvalidType())
+
 
 class TestTypeFormatter:
-    @pytest.fixture(params=TYPES_KEYS, ids=[f"t={t.__name__}" for t in TYPES_KEYS])
+    @pytest.fixture(params=TYPES, ids=[f"t={t.__name__}" for t in TYPES])
     def sut(self, request: pytest.FixtureRequest) -> TypeFormatter:
         self.type = request.param
         return TypeFormatter(self.type)
@@ -96,7 +103,7 @@ class TestTypeFormatter:
 
 
 class TestCustomNormalFormatter:
-    @pytest.fixture(params=TYPES_KEYS, ids=[f"t={t.__name__}" for t in TYPES_KEYS])
+    @pytest.fixture(params=TYPES, ids=[f"t={t.__name__}" for t in TYPES])
     def sut(self, request: pytest.FixtureRequest) -> CustomNormalFormatter:
         self.type = request.param
         self.fmt_func = lambda obj, depth: str(obj)
@@ -116,9 +123,19 @@ class TestCustomNormalFormatter:
         value = TYPES_DICT[self.type]
         assert sut(value) == self.fmt_func(value, depth=0)
 
+    @pytest.mark.parametrize("t", TYPES)
+    def test_normal_formatter_builder(self, t: type):
+        fmt_func = lambda x, depth: str(x)
+        sut = normal_formatter(t, fmt_func)
+
+        assert isinstance(sut, CustomNormalFormatter)
+
+        value = t()
+        assert sut(value) == fmt_func(value, depth=0)
+
 
 class TestCustomMultilineFormatter:
-    @pytest.fixture(params=TYPES_KEYS, ids=[f"t={t.__name__}" for t in TYPES_KEYS])
+    @pytest.fixture(params=TYPES, ids=[f"t={t.__name__}" for t in TYPES])
     def sut(self, request: pytest.FixtureRequest) -> CustomMultilineFormatter:
         self.type = request.param
         self.fmt_func = lambda obj, depth: [str(obj)]
@@ -137,3 +154,13 @@ class TestCustomMultilineFormatter:
     def test_call_with_correct_type(self, sut: CustomMultilineFormatter):
         value = TYPES_DICT[self.type]
         assert sut(value) == self.fmt_func(value, depth=0)
+
+    @pytest.mark.parametrize("t", TYPES)
+    def test_normal_formatter_builder(self, t: type):
+        fmt_func = lambda x, depth: [str(x)]
+        sut = multiline_formatter(t, fmt_func)
+
+        assert isinstance(sut, CustomMultilineFormatter)
+
+        value = t()
+        assert sut(value) == fmt_func(value, depth=0)

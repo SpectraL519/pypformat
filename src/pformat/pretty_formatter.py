@@ -99,7 +99,7 @@ class IterableFormatter(MultilineFormatter):
         self._options = self._base_formatter._options
 
     def __call__(self, collection: Iterable, depth: int = 0) -> list[str]:
-        self._check_type(collection)  # TODO: add tests
+        self._check_type(collection)
 
         opening, closing = IterableFormatter.get_parens(collection)
 
@@ -140,7 +140,7 @@ class MappingFormatter(MultilineFormatter):
         self._options = self._base_formatter._options
 
     def __call__(self, mapping: Mapping, depth: int = 0) -> list[str]:
-        self._check_type(mapping)  # TODO: add tests
+        self._check_type(mapping)
 
         if self._options.compact:
             mapping_str = (
