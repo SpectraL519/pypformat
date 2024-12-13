@@ -1,6 +1,6 @@
 from icecream import ic
 
-from pformat import FormatOptions, PrettyFormatter
+from pformat import FormatOptions, PrettyFormatter, normal_formatter
 
 """
 This is a dummy test file to empirically test and visualize
@@ -10,10 +10,27 @@ the behaviour of PrettyFormatter
 
 FMT_OPTIONS = {
     "default": FormatOptions(),
-    "custom": FormatOptions(
+    "compact": FormatOptions(
         width=40,
         indent_width=3,
         compact=True,
+    ),
+    "custom - projections": FormatOptions(
+        width=40,
+        compact=True,
+        projections={
+            float: lambda f: int(f),
+            bytes: lambda b: bytearray(b),
+        },
+    ),
+    "custom - formatters": FormatOptions(
+        width=40,
+        compact=True,
+        formatters=[
+            normal_formatter(int, lambda i, _: f"{i:.1f}"),
+            normal_formatter(float, lambda f, _: f"{f:.2f}"),
+            normal_formatter(str, lambda s, _: f'str"{s}"'),
+        ],
     ),
 }
 
@@ -23,7 +40,7 @@ def test_dummy_collection():
 
     collection = [
         1,
-        2,
+        2.123,
         {"key3": 3, "key4": {"key5": 5, "key6": 6}},
         {8, 7},
         frozenset({9, 10}),

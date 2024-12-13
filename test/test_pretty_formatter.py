@@ -1,10 +1,11 @@
 from collections import deque
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import asdict
 
 import pytest
 
 from pformat.format_options import FormatOptions
+from pformat.formatter_types import normal_formatter
 from pformat.indentation import add_indent, add_indents
 from pformat.pretty_formatter import IterableFormatter, PrettyFormatter
 
@@ -15,6 +16,7 @@ def test_iterable_formatter_get_parnens():
     assert IterableFormatter.get_parens(frozenset()) == ("frozen{", "}")
     assert IterableFormatter.get_parens(tuple()) == ("(", ")")
     assert IterableFormatter.get_parens(range(3)) == ("(", ")")
+    assert IterableFormatter.get_parens(bytearray()) == ("bytearray(", ")")
     assert IterableFormatter.get_parens(deque()) == ("deque([", "])")
     assert IterableFormatter.get_parens(DummyIterable()) == ("![", "]!")
 
@@ -286,3 +288,70 @@ class TestPrettyFormatterCompactForNestedMappingTypes:
 
         assert sut(mapping) == expected_output
         assert sut.format(mapping) == expected_output
+
+
+class TestPrettyFormatterProjections:
+    def test_format_projected_elements(self):
+        float_proj = lambda f: int(f) + 1
+        str_proj = lambda s: [ord(c) for c in s]
+
+        sut = PrettyFormatter.new(
+            compact=True,
+            width=None,
+            projections={
+                float: float_proj,
+                str: str_proj,
+            },
+        )
+
+        f = 3.14
+        assert float_proj(f) != f
+        assert sut(f) != repr(f)
+        assert sut(f) == repr(float_proj(f))
+        assert sut.format(f) == repr(float_proj(f))
+
+        s = "string"
+        assert str_proj(s) != s
+        assert sut(s) != repr(s)
+        assert sut(s) == repr(str_proj(s))
+        assert sut.format(s) == repr(str_proj(s))
+
+    def test_format_projected_elements_with_no_matchin_projection(self):
+        sut = PrettyFormatter.new(
+            compact=True,
+            width=None,
+            projections=dict(),
+        )
+
+        f = 3.14
+        assert sut(f) == repr(f)
+        assert sut.format(f) == repr(f)
+
+
+class TestPrettyFormatterCustomFormatters:
+    def test_format_elements_with_overriden_formatters(self):
+        base_types = [str, bytes, Iterable, Mapping]
+        concrete_types = [str, bytes, list, dict]
+
+        fmt_func = lambda x, depth: str(x)
+
+        sut = PrettyFormatter.new(formatters=[normal_formatter(t, fmt_func) for t in base_types])
+
+        assert all(sut(value) == fmt_func(value, depth=0) for t in concrete_types if (value := t()))
+
+    def test_format_elements_with_custom_formatters(self):
+        class DummyType:
+            def __str__(self):
+                return "DummyType.__str__()"
+
+        custom_types = [int, float, DummyType]
+        fmt_func = lambda x, depth: str(x)
+
+        sut = PrettyFormatter.new(formatters=[normal_formatter(t, fmt_func) for t in custom_types])
+
+        assert all(sut(value) == fmt_func(value, depth=0) for t in custom_types if (value := t()))
+
+        default_type_values = ["string", b"bytes", [1, 2, 3], {"k1": 1, "k2": 2}]
+        default_formatter = PrettyFormatter()
+
+        assert all(sut(value) == default_formatter(value) for value in default_type_values)
