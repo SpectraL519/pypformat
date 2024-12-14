@@ -6,7 +6,7 @@ import pytest
 
 from pformat.format_options import FormatOptions
 from pformat.formatter_types import normal_formatter
-from pformat.indentation import add_indent, add_indents
+from pformat.indentation_utility import add_indent, add_indents
 from pformat.pretty_formatter import IterableFormatter, PrettyFormatter
 
 

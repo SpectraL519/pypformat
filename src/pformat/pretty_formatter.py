@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from .format_options import FormatOptions, TypeFormatterFuncSequence, TypeProjectionFuncMapping
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeFormatter
-from .indentation import add_indents, indent_size
+from .indentation_utility import add_indents, indent_size
 
 
 class PrettyFormatter:

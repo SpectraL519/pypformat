@@ -2,7 +2,7 @@ from itertools import product
 
 import pytest
 
-from pformat.indentation import (
+from pformat.indentation_utility import (
     DEFAULT_INDENT_CHARACTER,
     add_indent,
     add_indents,
