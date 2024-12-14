@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 DEFAULT_INDENT_CHARACTER = " "
 DEFAULT_INDENT_WIDTH = 4
@@ -9,7 +9,7 @@ DEFAULT_INDENT_WIDTH = 4
 
 @dataclass
 class IndentMarker:
-    character: str
+    character: str = DEFAULT_INDENT_CHARACTER
     fill: bool = True
 
     def __post_init__(self):
@@ -21,8 +21,8 @@ class IndentMarker:
 
 @dataclass
 class IndentType:
-    marker: IndentMarker
-    width: int
+    width: int = DEFAULT_INDENT_WIDTH
+    marker: IndentMarker = field(default_factory=IndentMarker)
 
     def size(self, depth: int) -> int:
         return self.width * depth
@@ -41,13 +41,13 @@ class IndentType:
 
     @staticmethod
     def new(
+        width: int = DEFAULT_INDENT_WIDTH,
         character: str = DEFAULT_INDENT_CHARACTER,
         fill: bool = True,
-        width: int = DEFAULT_INDENT_CHARACTER,
     ) -> IndentType:
         return IndentType(
-            marker=IndentMarker(character=character, fill=fill),
             width=width,
+            marker=IndentMarker(character=character, fill=fill),
         )
 
     @staticmethod
@@ -57,21 +57,21 @@ class IndentType:
     @staticmethod
     def DOTS(width: int = DEFAULT_INDENT_WIDTH) -> IndentType:
         return IndentType.new(
-            character="·",
             width=width,
+            character="·",
         )
 
     @staticmethod
     def THICK_DOTS(width: int = DEFAULT_INDENT_WIDTH) -> "IndentType":
         return IndentType.new(
-            character="•",
             width=width,
+            character="•",
         )
 
     @staticmethod
     def LINE(width: int = DEFAULT_INDENT_WIDTH) -> "IndentType":
         return IndentType.new(
+            width=width,
             character="¦",
             fill=False,
-            width=width,
         )
