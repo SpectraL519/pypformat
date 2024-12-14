@@ -1,5 +1,6 @@
 from collections import deque
 from collections.abc import Iterable, Mapping
+from itertools import product
 
 import pytest
 
@@ -46,6 +47,10 @@ def gen_mapping(data: Iterable) -> dict:
 
 SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
 INDENT_WIDTH_VALS = [2, 4]
+INDENT_TYPE_VALS = [
+    gen(width=w)
+    for gen, w in product([IndentType.NONE, IndentType.DOTS, IndentType.LINE], INDENT_WIDTH_VALS)
+]
 RECOGNIZABLE_ITERABLE_TYPES = [list, set, frozenset, tuple, deque]
 RECOGNIZABLE_NHASH_ITERABLE_TYPES = [list, tuple, deque]
 
@@ -62,9 +67,9 @@ class DummyIterable:
 
 
 class TestPrettyFormatterSimple:
-    @pytest.fixture(params=INDENT_WIDTH_VALS, ids=[f"indent_width={v}" for v in INDENT_WIDTH_VALS])
+    @pytest.fixture(params=INDENT_TYPE_VALS, ids=[f"indent_type={it}" for it in INDENT_TYPE_VALS])
     def sut(self, request: pytest.FixtureRequest) -> PrettyFormatter:
-        self.indent_type = IndentType.NONE(width=request.param)
+        self.indent_type = request.param
         return PrettyFormatter.new(indent_type=self.indent_type)
 
     @pytest.mark.parametrize(
@@ -114,9 +119,9 @@ class TestPrettyFormatterSimple:
 
 
 class TestPrettyFormatterForNestedStructures:
-    @pytest.fixture(params=INDENT_WIDTH_VALS, ids=[f"indent_width={v}" for v in INDENT_WIDTH_VALS])
+    @pytest.fixture(params=INDENT_TYPE_VALS, ids=[f"indent_type={it}" for it in INDENT_TYPE_VALS])
     def sut(self, request: pytest.FixtureRequest) -> PrettyFormatter:
-        self.indent_type = IndentType.NONE(width=request.param)
+        self.indent_type = request.param
         return PrettyFormatter.new(indent_type=self.indent_type)
 
     @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_NHASH_ITERABLE_TYPES)

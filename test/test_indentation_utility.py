@@ -119,14 +119,14 @@ class TestIndentType:
     def test_add_to_each_for_empty_list(self, sut: IndentType, depth: int):
         assert len(sut.add_to_each(list(), depth)) == 0
 
-    def test_add_indents_default_depth(self, sut: IndentType):
+    def test_add_to_each_default_depth(self, sut: IndentType):
         assert all(
             s_out == f"{sut.string(depth=1)}{self.dummy_str}"
             for s_out in sut.add_to_each([self.dummy_str for _ in range(5)])
         )
 
     @pytest.mark.parametrize("depth", DEPTH_VASL, ids=[f"depth={d}" for d in DEPTH_VASL])
-    def test_add_indents(self, sut: IndentType, depth: int):
+    def test_add_to_each(self, sut: IndentType, depth: int):
         assert all(
             s_out == f"{sut.string(depth)}{self.dummy_str}"
             for s_out in sut.add_to_each([self.dummy_str for _ in range(5)], depth)
