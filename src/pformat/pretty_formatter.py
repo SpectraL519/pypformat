@@ -6,7 +6,6 @@ from typing import Any, Optional
 
 from .format_options import FormatOptions, TypeFormatterFuncSequence, TypeProjectionFuncMapping
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeFormatter
-from .indentation import add_indents, indent_size
 
 
 class PrettyFormatter:
@@ -26,16 +25,16 @@ class PrettyFormatter:
     @staticmethod
     def new(
         width: int = FormatOptions.default("width"),
-        indent_width: int = FormatOptions.default("indent_width"),
         compact: int = FormatOptions.default("compact"),
+        indent_type: int = FormatOptions.default("indent_type"),
         projections: Optional[TypeProjectionFuncMapping] = FormatOptions.default("projections"),
         formatters: Optional[TypeFormatterFuncSequence] = FormatOptions.default("formatters"),
     ) -> PrettyFormatter:
         return PrettyFormatter(
             options=FormatOptions(
                 width=width,
-                indent_width=indent_width,
                 compact=compact,
+                indent_type=indent_type,
                 projections=projections,
                 formatters=formatters,
             )
@@ -107,7 +106,7 @@ class IterableFormatter(MultilineFormatter):
             collecion_str = (
                 opening + ", ".join(self._base_formatter(value) for value in collection) + closing
             )
-            collecion_str_len = len(collecion_str) + indent_size(self._options.indent_width, depth)
+            collecion_str_len = len(collecion_str) + self._options.indent_type.size(depth)
             if self._options.width is None or collecion_str_len <= self._options.width:
                 return [collecion_str]
 
@@ -117,7 +116,7 @@ class IterableFormatter(MultilineFormatter):
             v_fmt[-1] = f"{v_fmt[-1]},"
             values.extend(v_fmt)
 
-        values_fmt = add_indents(values, self._options.indent_width)
+        values_fmt = self._options.indent_type.add_to_each(values)
         return [opening, *values_fmt, closing]
 
     @staticmethod
@@ -155,7 +154,7 @@ class MappingFormatter(MultilineFormatter):
                 )
                 + "}"
             )
-            collecion_str_len = len(mapping_str) + indent_size(self._options.indent_width, depth)
+            collecion_str_len = len(mapping_str) + self._options.indent_type.size(depth)
             if self._options.width is None or collecion_str_len <= self._options.width:
                 return [mapping_str]
 
@@ -167,5 +166,5 @@ class MappingFormatter(MultilineFormatter):
             item_values_fmt[-1] = f"{item_values_fmt[-1]},"
             values.extend(item_values_fmt)
 
-        values_fmt = add_indents(values, self._options.indent_width)
+        values_fmt = self._options.indent_type.add_to_each(values)
         return ["{", *values_fmt, "}"]
