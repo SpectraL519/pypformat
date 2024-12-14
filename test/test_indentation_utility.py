@@ -84,7 +84,10 @@ class TestIndentType:
         assert IndentType.NONE(width) == IndentType(width=width)
         assert IndentType.DOTS(width) == IndentType.new(width=width, character="·")
         assert IndentType.THICK_DOTS(width) == IndentType.new(width=width, character="•")
-        assert IndentType.LINE(width) == IndentType.new(width=width, character="¦", fill=False)
+        assert IndentType.LINE(width) == IndentType.new(width=width, character="|", fill=False)
+        assert IndentType.BROKEN_BAR(width) == IndentType.new(
+            width=width, character="¦", fill=False
+        )
 
     @pytest.mark.parametrize("width,depth", WD_PARAMS, ids=WD_IDS)
     def test_size(self, width: int, depth: int):

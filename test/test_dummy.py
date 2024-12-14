@@ -1,6 +1,6 @@
 from icecream import ic
 
-from pformat import FormatOptions, PrettyFormatter, normal_formatter
+from pformat import FormatOptions, IndentType, PrettyFormatter, normal_formatter
 
 """
 This is a dummy test file to empirically test and visualize
@@ -10,22 +10,22 @@ the behaviour of PrettyFormatter
 
 FMT_OPTIONS = {
     "default": FormatOptions(),
-    "compact": FormatOptions(
+    "compact, dot indent": FormatOptions(
         width=40,
-        indent_width=3,
         compact=True,
+        indent_type=IndentType.DOTS(width=3),
     ),
-    "custom - projections": FormatOptions(
+    "compact, bbar indent, projections": FormatOptions(
         width=40,
         compact=True,
+        indent_type=IndentType.BROKEN_BAR(),
         projections={
             float: lambda f: int(f),
             bytes: lambda b: bytearray(b),
         },
     ),
-    "custom - formatters": FormatOptions(
-        width=40,
-        compact=True,
+    "line indent, formatters": FormatOptions(
+        indent_type=IndentType.LINE(),
         formatters=[
             normal_formatter(int, lambda i, _: f"{i:.1f}"),
             normal_formatter(float, lambda f, _: f"{f:.2f}"),

@@ -72,6 +72,14 @@ class IndentType:
     def LINE(width: int = DEFAULT_INDENT_WIDTH) -> "IndentType":
         return IndentType.new(
             width=width,
+            character="|",
+            fill=False,
+        )
+
+    @staticmethod
+    def BROKEN_BAR(width: int = DEFAULT_INDENT_WIDTH) -> "IndentType":
+        return IndentType.new(
+            width=width,
             character="¦",
             fill=False,
         )
