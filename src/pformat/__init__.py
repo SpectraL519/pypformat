@@ -15,5 +15,5 @@ from .formatter_types import (
     multiline_formatter,
     normal_formatter,
 )
-from .indentation_utility import add_indent, add_indents, indent_size, indent_str
+from .indentation_utility import IndentMarker, IndentType
 from .pretty_formatter import DefaultFormatter, IterableFormatter, MappingFormatter, PrettyFormatter

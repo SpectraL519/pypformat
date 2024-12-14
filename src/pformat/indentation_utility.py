@@ -14,7 +14,6 @@ class IndentMarker:
 
     def __post_init__(self):
         if len(self.character) != 1:
-            self.character = None
             raise ValueError(
                 f"The character of an IndentMarker must be a string of length 1 - got `{self.character}`"
             )
@@ -33,6 +32,12 @@ class IndentType:
             return self.marker.character * self.size(depth)
 
         return f"{self.marker.character}{DEFAULT_INDENT_CHARACTER * (self.width - 1)}" * depth
+
+    def add_to(self, s: str, depth: int = 1) -> str:
+        return f"{self.string(depth)}{s}"
+
+    def add_to_each(self, s_collection: Iterable[str], depth: int = 1) -> list[str]:
+        return [self.add_to(s, depth) for s in s_collection]
 
     @staticmethod
     def new(
@@ -70,22 +75,3 @@ class IndentType:
             fill=False,
             width=width,
         )
-
-
-def indent_size(indent_width: int, depth: int) -> int:
-    return depth * indent_width
-
-
-def indent_str(indent_width: int, depth: int) -> str:
-    return DEFAULT_INDENT_CHARACTER * indent_size(indent_width, depth)
-
-
-def add_indent(s: str, indent_width: int, depth: int = 1) -> str:
-    return f"{indent_str(indent_width, depth)}{s}"
-
-
-def add_indents(str_list: Iterable[str], indent_width: int, depth: int = 1) -> list[str]:
-    if len(str_list) == 0:
-        return str_list
-
-    return [add_indent(s, indent_width, depth) for s in str_list]
