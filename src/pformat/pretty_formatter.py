@@ -132,7 +132,7 @@ class IterableFormatter(MultilineFormatter):
             return "(", ")"
         if isinstance(collection, deque):
             return "deque([", "])"
-        return "![", "]!"
+        return f"{type(collection).__name__}(", ")"
 
 
 class MappingFormatter(MultilineFormatter):

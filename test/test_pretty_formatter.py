@@ -17,7 +17,7 @@ def test_iterable_formatter_get_parnens():
     assert IterableFormatter.get_parens(tuple()) == ("(", ")")
     assert IterableFormatter.get_parens(range(3)) == ("(", ")")
     assert IterableFormatter.get_parens(deque()) == ("deque([", "])")
-    assert IterableFormatter.get_parens(DummyIterable()) == ("![", "]!")
+    assert IterableFormatter.get_parens(DummyIterable()) == (f"{DummyIterable.__name__}(", ")")
 
 
 class TestPrettyFormatterInitialization:
@@ -82,9 +82,7 @@ class TestPrettyFormatterSimple:
     @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_ITERABLE_TYPES)
     def test_format_iterable(self, sut: PrettyFormatter, iterable_type: type):
         collection = iterable_type(SIMPLE_HASHABLE_DATA)
-
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) != ("![", "]!")
 
         expected_output = "\n".join(
             [
@@ -100,7 +98,11 @@ class TestPrettyFormatterSimple:
     def test_format_unrecognized_iterable(self, sut):
         collection = DummyIterable()
         expected_output = "\n".join(
-            ["![", *[f"{self.indent_type.add_to(repr(item))}," for item in collection], "]!"]
+            [
+                "DummyIterable(",
+                *[f"{self.indent_type.add_to(repr(item))}," for item in collection],
+                ")",
+            ]
         )
 
         assert sut(collection) == expected_output
@@ -129,7 +131,6 @@ class TestPrettyFormatterForNestedStructures:
         collection = iterable_type([*SIMPLE_DATA, iterable_type(SIMPLE_DATA)])
 
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) != ("![", "]!")
 
         expected_output = [f"{self.indent_type.add_to(repr(item))}," for item in SIMPLE_DATA]
         expected_output.extend(
@@ -146,9 +147,7 @@ class TestPrettyFormatterForNestedStructures:
 
     def test_format_nested_unrecognized_iterable(self, sut):
         collection = DummyIterable(nested=True)
-
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) == ("![", "]!")
 
         expected_output = [
             f"{self.indent_type.add_to(repr(item))}," for item in SIMPLE_HASHABLE_DATA
@@ -210,7 +209,6 @@ class TestPrettyFormatterCompact:
         collection = iterable_type(SIMPLE_HASHABLE_DATA)
 
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) != ("![", "]!")
 
         expected_output = opening + ", ".join(repr(value) for value in collection) + closing
 
@@ -219,9 +217,7 @@ class TestPrettyFormatterCompact:
 
     def test_format_unrecognized_iterable(self, sut: PrettyFormatter):
         collection = DummyIterable()
-
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) == ("![", "]!")
 
         expected_output = opening + ", ".join(repr(value) for value in collection) + closing
 
@@ -250,9 +246,7 @@ class TestPrettyFormatterCompactForNestedIterableTypes:
     @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_NHASH_ITERABLE_TYPES)
     def test_format_nested_iterable(self, sut: PrettyFormatter, iterable_type: type):
         collection = iterable_type([*SIMPLE_HASHABLE_DATA, iterable_type(SIMPLE_HASHABLE_DATA)])
-
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) != ("![", "]!")
 
         expected_output = [f"{self.indent_type.add_to(sut(item))}," for item in collection]
         expected_output = "\n".join([opening, *expected_output, closing])
@@ -262,9 +256,7 @@ class TestPrettyFormatterCompactForNestedIterableTypes:
 
     def test_format_nested_unrecognized_iterable(self, sut):
         collection = DummyIterable(nested=True)
-
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) == ("![", "]!")
 
         expected_output = [f"{self.indent_type.add_to(sut(item))}," for item in collection]
         expected_output = "\n".join([opening, *expected_output, closing])
