@@ -1,3 +1,4 @@
+from colored import Fore
 from icecream import ic
 
 from pformat import FormatOptions, IndentType, PrettyFormatter, normal_formatter
@@ -10,22 +11,22 @@ the behaviour of PrettyFormatter
 
 FMT_OPTIONS = {
     "default": FormatOptions(),
-    "compact, dot indent": FormatOptions(
+    "compact, dot indent (dark_gray)": FormatOptions(
         width=40,
         compact=True,
-        indent_type=IndentType.DOTS(width=3),
+        indent_type=IndentType.DOTS(width=3, style=Fore.dark_gray),
     ),
-    "compact, bbar indent, projections": FormatOptions(
+    "compact, bbar indent (grey_37), projections": FormatOptions(
         width=40,
         compact=True,
-        indent_type=IndentType.BROKEN_BAR(),
+        indent_type=IndentType.BROKEN_BAR(style=Fore.grey_37),
         projections={
             float: lambda f: int(f),
             bytes: lambda b: bytearray(b),
         },
     ),
-    "line indent, formatters": FormatOptions(
-        indent_type=IndentType.LINE(),
+    "line indent (green), formatters": FormatOptions(
+        indent_type=IndentType.LINE(style=Fore.green),
         formatters=[
             normal_formatter(int, lambda i, _: f"{i:.1f}"),
             normal_formatter(float, lambda f, _: f"{f:.2f}"),

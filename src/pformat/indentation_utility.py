@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from typing import Optional
+
+from .text_style import apply_style
 
 DEFAULT_INDENT_CHARACTER = " "
 DEFAULT_INDENT_WIDTH = 4
@@ -23,15 +26,13 @@ class IndentMarker:
 class IndentType:
     width: int = DEFAULT_INDENT_WIDTH
     marker: IndentMarker = field(default_factory=IndentMarker)
+    style: Optional[str] = None
 
     def size(self, depth: int) -> int:
         return self.width * depth
 
     def string(self, depth: int) -> str:
-        if self.marker.fill:
-            return self.marker.character * self.size(depth)
-
-        return f"{self.marker.character}{DEFAULT_INDENT_CHARACTER * (self.width - 1)}" * depth
+        return apply_style(self.__string(depth), self.style)
 
     def add_to(self, s: str, depth: int = 1) -> str:
         return f"{self.string(depth)}{s}"
@@ -39,47 +40,71 @@ class IndentType:
     def add_to_each(self, s_collection: Iterable[str], depth: int = 1) -> list[str]:
         return [self.add_to(s, depth) for s in s_collection]
 
+    def __string(self, depth: int) -> str:
+        if self.marker.fill:
+            return self.marker.character * self.size(depth)
+
+        return f"{self.marker.character}{DEFAULT_INDENT_CHARACTER * (self.width - 1)}" * depth
+
     @staticmethod
     def new(
         width: int = DEFAULT_INDENT_WIDTH,
         character: str = DEFAULT_INDENT_CHARACTER,
         fill: bool = True,
+        style: Optional[str] = None,
     ) -> IndentType:
         return IndentType(
             width=width,
             marker=IndentMarker(character=character, fill=fill),
+            style=style,
         )
 
     @staticmethod
     def NONE(width: int = DEFAULT_INDENT_WIDTH) -> IndentType:
-        return IndentType.new(width=width)
+        return IndentType.new(width=width, style=None)
 
     @staticmethod
-    def DOTS(width: int = DEFAULT_INDENT_WIDTH) -> IndentType:
+    def DOTS(
+        width: int = DEFAULT_INDENT_WIDTH,
+        style: Optional[str] = None,
+    ) -> IndentType:
         return IndentType.new(
             width=width,
             character="·",
+            style=style,
         )
 
     @staticmethod
-    def THICK_DOTS(width: int = DEFAULT_INDENT_WIDTH) -> "IndentType":
+    def THICK_DOTS(
+        width: int = DEFAULT_INDENT_WIDTH,
+        style: Optional[str] = None,
+    ) -> "IndentType":
         return IndentType.new(
             width=width,
             character="•",
+            style=style,
         )
 
     @staticmethod
-    def LINE(width: int = DEFAULT_INDENT_WIDTH) -> "IndentType":
+    def LINE(
+        width: int = DEFAULT_INDENT_WIDTH,
+        style: Optional[str] = None,
+    ) -> "IndentType":
         return IndentType.new(
             width=width,
             character="|",
             fill=False,
+            style=style,
         )
 
     @staticmethod
-    def BROKEN_BAR(width: int = DEFAULT_INDENT_WIDTH) -> "IndentType":
+    def BROKEN_BAR(
+        width: int = DEFAULT_INDENT_WIDTH,
+        style: Optional[str] = None,
+    ) -> "IndentType":
         return IndentType.new(
             width=width,
             character="¦",
             fill=False,
+            style=style,
         )
