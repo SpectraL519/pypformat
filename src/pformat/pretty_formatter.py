@@ -75,6 +75,7 @@ class PrettyFormatter:
         return [
             DefaultFormatter(str),
             DefaultFormatter(bytes),
+            DefaultFormatter(bytearray),
             MappingFormatter(self),
             IterableFormatter(self),
         ]
@@ -129,11 +130,9 @@ class IterableFormatter(MultilineFormatter):
             return "frozen{", "}"
         if isinstance(collection, tuple) or isinstance(collection, range):
             return "(", ")"
-        if isinstance(collection, bytearray):
-            return "bytearray(", ")"
         if isinstance(collection, deque):
             return "deque([", "])"
-        return "![", "]!"
+        return f"{type(collection).__name__}(", ")"
 
 
 class MappingFormatter(MultilineFormatter):

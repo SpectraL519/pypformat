@@ -16,9 +16,8 @@ def test_iterable_formatter_get_parnens():
     assert IterableFormatter.get_parens(frozenset()) == ("frozen{", "}")
     assert IterableFormatter.get_parens(tuple()) == ("(", ")")
     assert IterableFormatter.get_parens(range(3)) == ("(", ")")
-    assert IterableFormatter.get_parens(bytearray()) == ("bytearray(", ")")
     assert IterableFormatter.get_parens(deque()) == ("deque([", "])")
-    assert IterableFormatter.get_parens(DummyIterable()) == ("![", "]!")
+    assert IterableFormatter.get_parens(DummyIterable()) == (f"{DummyIterable.__name__}(", ")")
 
 
 class TestPrettyFormatterInitialization:
@@ -45,7 +44,8 @@ def gen_mapping(data: Iterable) -> dict:
     return {f"key{i}": value for i, value in enumerate(data)}
 
 
-SIMPLE_DATA = [123, 3.14, "string", b"bytes"]
+SIMPLE_DATA = [123, 3.14, "string", b"bytes", bytearray([1, 2, 3])]
+SIMPLE_HASHABLE_DATA = [data for data in SIMPLE_DATA if data.__hash__ is not None]
 INDENT_WIDTH_VALS = [2, 4]
 INDENT_TYPE_VALS = [
     gen(width=w)
@@ -58,9 +58,9 @@ RECOGNIZABLE_NHASH_ITERABLE_TYPES = [list, tuple, deque]
 class DummyIterable:
     def __init__(self, nested: bool = False):
         if nested:
-            self.data = [*SIMPLE_DATA, DummyIterable()]
+            self.data = [*SIMPLE_HASHABLE_DATA, DummyIterable()]
         else:
-            self.data = SIMPLE_DATA
+            self.data = SIMPLE_HASHABLE_DATA
 
     def __iter__(self):
         yield from self.data
@@ -81,10 +81,8 @@ class TestPrettyFormatterSimple:
 
     @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_ITERABLE_TYPES)
     def test_format_iterable(self, sut: PrettyFormatter, iterable_type: type):
-        collection = iterable_type(SIMPLE_DATA)
-
+        collection = iterable_type(SIMPLE_HASHABLE_DATA)
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) != ("![", "]!")
 
         expected_output = "\n".join(
             [
@@ -100,7 +98,11 @@ class TestPrettyFormatterSimple:
     def test_format_unrecognized_iterable(self, sut):
         collection = DummyIterable()
         expected_output = "\n".join(
-            ["![", *[f"{self.indent_type.add_to(repr(item))}," for item in collection], "]!"]
+            [
+                "DummyIterable(",
+                *[f"{self.indent_type.add_to(repr(item))}," for item in collection],
+                ")",
+            ]
         )
 
         assert sut(collection) == expected_output
@@ -129,7 +131,6 @@ class TestPrettyFormatterForNestedStructures:
         collection = iterable_type([*SIMPLE_DATA, iterable_type(SIMPLE_DATA)])
 
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) != ("![", "]!")
 
         expected_output = [f"{self.indent_type.add_to(repr(item))}," for item in SIMPLE_DATA]
         expected_output.extend(
@@ -146,15 +147,18 @@ class TestPrettyFormatterForNestedStructures:
 
     def test_format_nested_unrecognized_iterable(self, sut):
         collection = DummyIterable(nested=True)
-
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) == ("![", "]!")
 
-        expected_output = [f"{self.indent_type.add_to(repr(item))}," for item in SIMPLE_DATA]
+        expected_output = [
+            f"{self.indent_type.add_to(repr(item))}," for item in SIMPLE_HASHABLE_DATA
+        ]
         expected_output.extend(
             [
                 self.indent_type.add_to(opening),
-                *[f"{self.indent_type.add_to(repr(item), depth=2)}," for item in SIMPLE_DATA],
+                *[
+                    f"{self.indent_type.add_to(repr(item), depth=2)},"
+                    for item in SIMPLE_HASHABLE_DATA
+                ],
                 self.indent_type.add_to(f"{closing},"),
             ]
         )
@@ -202,10 +206,9 @@ class TestPrettyFormatterCompact:
 
     @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_ITERABLE_TYPES)
     def test_format_iterable(self, sut: PrettyFormatter, iterable_type: type):
-        collection = iterable_type(SIMPLE_DATA)
+        collection = iterable_type(SIMPLE_HASHABLE_DATA)
 
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) != ("![", "]!")
 
         expected_output = opening + ", ".join(repr(value) for value in collection) + closing
 
@@ -214,9 +217,7 @@ class TestPrettyFormatterCompact:
 
     def test_format_unrecognized_iterable(self, sut: PrettyFormatter):
         collection = DummyIterable()
-
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) == ("![", "]!")
 
         expected_output = opening + ", ".join(repr(value) for value in collection) + closing
 
@@ -244,10 +245,8 @@ class TestPrettyFormatterCompactForNestedIterableTypes:
 
     @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_NHASH_ITERABLE_TYPES)
     def test_format_nested_iterable(self, sut: PrettyFormatter, iterable_type: type):
-        collection = iterable_type([*SIMPLE_DATA, iterable_type(SIMPLE_DATA)])
-
+        collection = iterable_type([*SIMPLE_HASHABLE_DATA, iterable_type(SIMPLE_HASHABLE_DATA)])
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) != ("![", "]!")
 
         expected_output = [f"{self.indent_type.add_to(sut(item))}," for item in collection]
         expected_output = "\n".join([opening, *expected_output, closing])
@@ -257,9 +256,7 @@ class TestPrettyFormatterCompactForNestedIterableTypes:
 
     def test_format_nested_unrecognized_iterable(self, sut):
         collection = DummyIterable(nested=True)
-
         opening, closing = IterableFormatter.get_parens(collection)
-        assert (opening, closing) == ("![", "]!")
 
         expected_output = [f"{self.indent_type.add_to(sut(item))}," for item in collection]
         expected_output = "\n".join([opening, *expected_output, closing])
@@ -278,8 +275,8 @@ class TestPrettyFormatterCompactForNestedMappingTypes:
         )
 
     def test_format_nested_mapping(self, sut):
-        mapping = gen_mapping(SIMPLE_DATA)
-        mapping["nested"] = gen_mapping(SIMPLE_DATA)
+        mapping = gen_mapping(SIMPLE_HASHABLE_DATA)
+        mapping["nested"] = gen_mapping(SIMPLE_HASHABLE_DATA)
 
         expected_output = list()
         for key, value in mapping.items():
