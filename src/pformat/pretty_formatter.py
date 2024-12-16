@@ -33,8 +33,7 @@ class PrettyFormatter:
         compact: int = FormatOptions.default("compact"),
         indent_type: int = FormatOptions.default("indent_type"),
         text_style: TextStyleParam = FormatOptions.default("text_style"),
-        # apply_text_style_to: ApplyTextStyleTo = FormatOptions.default("apply_text_style_to"),
-        text_style_full: bool = FormatOptions.default("text_style_full"),
+        style_entire_text: bool = FormatOptions.default("style_entire_text"),
         projections: Optional[TypeProjectionFuncMapping] = FormatOptions.default("projections"),
         formatters: Optional[TypeFormatterFuncSequence] = FormatOptions.default("formatters"),
     ) -> PrettyFormatter:
@@ -44,7 +43,7 @@ class PrettyFormatter:
                 compact=compact,
                 indent_type=indent_type,
                 text_style=TextStyle.new(text_style),
-                text_style_full=text_style_full,
+                style_entire_text=style_entire_text,
                 projections=projections,
                 formatters=formatters,
             )
@@ -122,7 +121,7 @@ class IterableFormatter(MultilineFormatter):
                 depth
             )
             if self._options.width is None or collecion_str_len <= self._options.width:
-                if self._options.text_style_full:
+                if self._options.style_entire_text:
                     return [self._options.text_style.apply_to(collecion_str)]
                 return [collecion_str]
 
@@ -133,7 +132,7 @@ class IterableFormatter(MultilineFormatter):
             values.extend(v_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
-        if self._options.text_style_full:
+        if self._options.style_entire_text:
             return self._options.text_style.apply_to_each([opening, *values_fmt, closing])
         return [opening, *values_fmt, closing]
 
@@ -172,7 +171,7 @@ class MappingFormatter(MultilineFormatter):
             )
             mapping_str_len = strlen_no_style(mapping_str) + self._options.indent_type.length(depth)
             if self._options.width is None or mapping_str_len <= self._options.width:
-                if self._options.text_style_full:
+                if self._options.style_entire_text:
                     return [self._options.text_style.apply_to(mapping_str)]
                 return [mapping_str]
 
@@ -185,6 +184,6 @@ class MappingFormatter(MultilineFormatter):
             values.extend(item_values_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
-        if self._options.text_style_full:
+        if self._options.style_entire_text:
             return self._options.text_style.apply_to_each(["{", *values_fmt, "}"])
         return ["{", *values_fmt, "}"]

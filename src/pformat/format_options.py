@@ -12,7 +12,7 @@ class FormatOptions:
     compact: bool = False
     indent_type: IndentType = field(default_factory=lambda: IndentType.NONE())
     text_style: TextStyle = field(default_factory=TextStyle)
-    text_style_full: bool = False
+    style_entire_text: bool = False
     projections: Optional[TypeProjectionFuncMapping] = None
     formatters: Optional[TypeFormatterFuncSequence] = None
 

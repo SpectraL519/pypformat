@@ -289,7 +289,7 @@ class TestPrettyFormatterCompactForNestedMappingTypes:
         assert sut.format(mapping) == expected_output
 
 
-class TestPrettyFormatterTextStyleFull:
+class TestPrettyFormatterStyleEntireText:
     COMPACT_VALS = [True, False]
     STYLE_VALS = [Fore.light_gray, Back.green, Style.bold]
     MODE_VALS = [TextStyle.Mode.normal, TextStyle.Mode.override, TextStyle.Mode.preserve]
@@ -302,7 +302,7 @@ class TestPrettyFormatterTextStyleFull:
         compact, style, mode = request.param
         self.text_style = TextStyle(style, mode)
         return PrettyFormatter.new(
-            compact=compact, text_style=self.text_style, text_style_full=True
+            compact=compact, text_style=self.text_style, style_entire_text=True
         )
 
     def _is_str_styled(self, s: str) -> bool:
