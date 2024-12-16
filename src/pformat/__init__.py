@@ -17,3 +17,10 @@ from .formatter_types import (
 )
 from .indentation_utility import IndentMarker, IndentType
 from .pretty_formatter import DefaultFormatter, IterableFormatter, MappingFormatter, PrettyFormatter
+from .text_style import (
+    TextStyle,
+    TextStyleParam,
+    TextStyleValue,
+    rm_style_modifiers,
+    strlen_no_style,
+)

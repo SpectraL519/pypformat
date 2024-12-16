@@ -3,11 +3,13 @@ from collections.abc import Iterable, Mapping
 from itertools import product
 
 import pytest
+from colored import Back, Fore, Style
 
 from pformat.format_options import FormatOptions
 from pformat.formatter_types import normal_formatter
 from pformat.indentation_utility import IndentType
 from pformat.pretty_formatter import IterableFormatter, PrettyFormatter
+from pformat.text_style import TextStyle
 
 
 def test_iterable_formatter_get_parnens():
@@ -285,6 +287,47 @@ class TestPrettyFormatterCompactForNestedMappingTypes:
 
         assert sut(mapping) == expected_output
         assert sut.format(mapping) == expected_output
+
+
+class TestPrettyFormatterStyleEntireText:
+    COMPACT_VALS = [True, False]
+    STYLE_VALS = [Fore.light_gray, Back.green, Style.bold]
+    MODE_VALS = [TextStyle.Mode.normal, TextStyle.Mode.override, TextStyle.Mode.preserve]
+
+    CSM_PARAMS = list(product(COMPACT_VALS, STYLE_VALS, MODE_VALS))
+    CSM_IDS = [f"{compact=},{style=},{mode=}" for compact, style, mode in CSM_PARAMS]
+
+    @pytest.fixture(autouse=True, params=CSM_PARAMS, ids=CSM_IDS)
+    def sut(self, request: pytest.FixtureRequest) -> TextStyle:
+        compact, style, mode = request.param
+        self.text_style = TextStyle(style, mode)
+        return PrettyFormatter.new(
+            compact=compact, text_style=self.text_style, style_entire_text=True
+        )
+
+    def _is_str_styled(self, s: str) -> bool:
+        return s.startswith(f"{Style.reset}{self.text_style.value}") and s.endswith(Style.reset)
+
+    def test_is_output_styled_simple(self, sut: PrettyFormatter):
+        assert all(self._is_str_styled(sut(item)) for item in SIMPLE_DATA)
+
+    @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_NHASH_ITERABLE_TYPES)
+    def test_is_output_styled_nested_iterable(self, sut: PrettyFormatter, iterable_type: type):
+        collection = iterable_type([*SIMPLE_HASHABLE_DATA, iterable_type(SIMPLE_HASHABLE_DATA)])
+
+        formatted = sut(collection)
+        formatted_lines = formatted.split("\n")
+
+        assert all(self._is_str_styled(line) for line in formatted_lines)
+
+    def test_is_output_styled_nested_mapping(self, sut: PrettyFormatter):
+        mapping = gen_mapping(SIMPLE_HASHABLE_DATA)
+        mapping["nested"] = gen_mapping(SIMPLE_HASHABLE_DATA)
+
+        formatted = sut(mapping)
+        formatted_lines = formatted.split("\n")
+
+        assert all(self._is_str_styled(line) for line in formatted_lines)
 
 
 class TestPrettyFormatterProjections:

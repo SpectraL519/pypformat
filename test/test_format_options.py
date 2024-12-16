@@ -2,6 +2,12 @@ from dataclasses import asdict, fields
 
 from pformat.format_options import FormatOptions
 from pformat.indentation_utility import IndentType
+from pformat.text_style import TextStyle
+
+
+def test_init_with_none_text_style():
+    sut = FormatOptions(text_style=None)
+    assert sut.text_style == TextStyle()
 
 
 def test_asdict_shallow():

@@ -1,0 +1,2 @@
+pytest
+colored==2.2.4
