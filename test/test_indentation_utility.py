@@ -58,7 +58,7 @@ class TestIndentType:
     WD_IDS = [f"width={w},depth={d}" for w, d in WD_PARAMS]
 
     @pytest.fixture(params=WM_PARAMS, ids=WM_IDS)
-    def sut(self, request: pytest.FixtureRequest) -> str:
+    def sut(self, request: pytest.FixtureRequest) -> IndentType:
         self.dummy_str = "string"
         self.width, self.marker = request.param
         return IndentType(self.width, self.marker)

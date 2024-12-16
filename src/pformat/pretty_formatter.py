@@ -10,7 +10,7 @@ from .format_options import (
     TypeProjectionFuncMapping,
 )
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeFormatter
-from .text_style import TextStyle, TextStyleParam, _strlen_clean
+from .text_style import TextStyle, TextStyleParam, strlen_no_style
 
 
 class PrettyFormatter:
@@ -118,7 +118,7 @@ class IterableFormatter(MultilineFormatter):
             collecion_str = (
                 opening + ", ".join(self._base_formatter(value) for value in collection) + closing
             )
-            collecion_str_len = _strlen_clean(collecion_str) + self._options.indent_type.length(
+            collecion_str_len = strlen_no_style(collecion_str) + self._options.indent_type.length(
                 depth
             )
             if self._options.width is None or collecion_str_len <= self._options.width:
@@ -170,7 +170,7 @@ class MappingFormatter(MultilineFormatter):
                 )
                 + "}"
             )
-            mapping_str_len = _strlen_clean(mapping_str) + self._options.indent_type.length(depth)
+            mapping_str_len = strlen_no_style(mapping_str) + self._options.indent_type.length(depth)
             if self._options.width is None or mapping_str_len <= self._options.width:
                 if self._options.text_style_full:
                     return [self._options.text_style.apply_to(mapping_str)]

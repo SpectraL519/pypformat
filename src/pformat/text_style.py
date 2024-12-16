@@ -12,12 +12,12 @@ ANSI_ESCAPE_PATTERN = r"\x1b\[[0-9;]*[mGK]"
 ANSI_ESCAPE_RESET_PATTERN = re.escape(Style.reset)
 
 
-def _clean_style(s: str) -> str:
+def rm_style_modifiers(s: str) -> str:
     return re.sub(ANSI_ESCAPE_PATTERN, "", s)
 
 
-def _strlen_clean(s: str) -> int:
-    return len(_clean_style(s))
+def strlen_no_style(s: str) -> int:
+    return len(rm_style_modifiers(s))
 
 
 def _apply_style_normal(s: str, style: str) -> str:
@@ -25,7 +25,7 @@ def _apply_style_normal(s: str, style: str) -> str:
 
 
 def _apply_style_override(s: str, style: str) -> str:
-    return f"{Style.reset}{style}{_clean_style(s)}{Style.reset}"
+    return f"{Style.reset}{style}{rm_style_modifiers(s)}{Style.reset}"
 
 
 def _apply_style_preserve(s: str, style: str) -> str:
@@ -40,6 +40,8 @@ TextStyleParam = Union["TextStyle", TextStyleValue]
 @dataclass
 class TextStyle:
     class Mode(Enum):
+        # TODO: ._value_ -> name, .apply -> callback
+
         normal = _apply_style_normal
         override = _apply_style_override
         preserve = _apply_style_preserve

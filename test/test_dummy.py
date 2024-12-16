@@ -77,6 +77,6 @@ def test_dummy_mapping():
     print("\n" + ("-" * 50) + "\n")
 
     for config_name, fmt_opt in FMT_OPTIONS.items():
-        ic(config_name)
+        ic(config_name, fmt_opt)
         fmt = PrettyFormatter(fmt_opt)
         print(fmt(mapping), end="\n" * 3)
