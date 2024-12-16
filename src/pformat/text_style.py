@@ -4,7 +4,7 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 from colored import Style
 
@@ -40,11 +40,15 @@ TextStyleParam = Union["TextStyle", TextStyleValue]
 @dataclass
 class TextStyle:
     class Mode(Enum):
-        # TODO: ._value_ -> name, .apply -> callback
+        normal = ("normal", _apply_style_normal)
+        override = ("override", _apply_style_override)
+        preserve = ("preserve", _apply_style_preserve)
 
-        normal = _apply_style_normal
-        override = _apply_style_override
-        preserve = _apply_style_preserve
+        def __new__(cls, name: str, callback: Callable[[str, str], str]):
+            obj = object.__new__(cls)
+            obj._value_ = name
+            obj.callback = callback
+            return obj
 
     value: TextStyleValue = None
     mode: Mode = Mode.preserve
@@ -53,7 +57,7 @@ class TextStyle:
         if self.value is None:
             return s
 
-        return self.mode(s, self.value)
+        return self.mode.callback(s, self.value)
 
     def apply_to_each(self, s_collection: Iterable[str]) -> list[str]:
         return [self.apply_to(s) for s in s_collection]
