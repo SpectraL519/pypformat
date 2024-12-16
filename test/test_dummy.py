@@ -11,10 +11,11 @@ the behaviour of PrettyFormatter
 
 FMT_OPTIONS = {
     "default": FormatOptions(),
-    "compact, dot indent (dark_gray)": FormatOptions(
+    "compact, dot indent (dark_gray), Fore.green": FormatOptions(
         width=40,
         compact=True,
         indent_type=IndentType.DOTS(width=3, style=Fore.dark_gray),
+        text_style=f"{Fore.green}",
     ),
     "compact, bbar indent (grey_37), projections": FormatOptions(
         width=40,
@@ -75,6 +76,6 @@ def test_dummy_mapping():
     print("\n" + ("-" * 50) + "\n")
 
     for config_name, fmt_opt in FMT_OPTIONS.items():
-        ic(config_name, fmt_opt)
+        ic(config_name)
         fmt = PrettyFormatter(fmt_opt)
         print(fmt(mapping), end="\n" * 3)

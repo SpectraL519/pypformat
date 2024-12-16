@@ -90,16 +90,16 @@ class TestIndentType:
         )
 
     @pytest.mark.parametrize("width,depth", WD_PARAMS, ids=WD_IDS)
-    def test_size(self, width: int, depth: int):
+    def test_length(self, width: int, depth: int):
         sut = IndentType(width=width)
-        assert sut.size(depth) == width * depth
+        assert sut.length(depth) == width * depth
 
     @pytest.mark.parametrize("width,depth", WD_PARAMS, ids=WD_IDS)
     def test_string_fill(self, width: int, depth: int):
         character = "_"
         sut = IndentType.new(width, character=character, fill=True)
 
-        assert sut.string(depth) == character * sut.size(depth)
+        assert sut.string(depth) == character * sut.length(depth)
 
     @pytest.mark.parametrize("width,depth", WD_PARAMS, ids=WD_IDS)
     def test_string_no_fill(self, width: int, depth: int):

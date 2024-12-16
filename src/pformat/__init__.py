@@ -5,7 +5,7 @@ from .common_types import (
     TypeProjectionFunc,
     TypeProjectionFuncMapping,
 )
-from .format_options import FormatOptions
+from .format_options import ApplyTextStyleTo, FormatOptions
 from .formatter_types import (
     CustomMultilineFormatter,
     CustomNormalFormatter,
@@ -17,3 +17,4 @@ from .formatter_types import (
 )
 from .indentation_utility import IndentMarker, IndentType
 from .pretty_formatter import DefaultFormatter, IterableFormatter, MappingFormatter, PrettyFormatter
+from .text_style import TextStyle, TextStyleParam, TextStyleValue
