@@ -1,15 +1,9 @@
 from dataclasses import MISSING, asdict, dataclass, field, fields
-from enum import Enum, auto
 from typing import Any, Optional
 
 from .common_types import TypeFormatterFuncSequence, TypeProjectionFuncMapping
 from .indentation_utility import IndentType
 from .text_style import TextStyle
-
-
-class ApplyTextStyleTo(Enum):
-    all = auto()
-    values_only = auto()
 
 
 @dataclass
@@ -18,9 +12,7 @@ class FormatOptions:
     compact: bool = False
     indent_type: IndentType = field(default_factory=lambda: IndentType.NONE())
     text_style: TextStyle = field(default_factory=TextStyle)
-    apply_text_style_to: ApplyTextStyleTo = (
-        ApplyTextStyleTo.all,
-    )  # TODO: add proper handling in PrettyFormatter
+    text_style_full: bool = False
     projections: Optional[TypeProjectionFuncMapping] = None
     formatters: Optional[TypeFormatterFuncSequence] = None
 

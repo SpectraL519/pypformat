@@ -1,4 +1,4 @@
-from colored import Fore
+from colored import Back, Fore, Style
 from icecream import ic
 
 from pformat import FormatOptions, IndentType, PrettyFormatter, normal_formatter
@@ -11,11 +11,12 @@ the behaviour of PrettyFormatter
 
 FMT_OPTIONS = {
     "default": FormatOptions(),
-    "compact, dot indent (dark_gray), Fore.green": FormatOptions(
+    "compact, dot indent (Fore.dark_gray), text_style=Force.green,Back.black,Style.bold,full": FormatOptions(
         width=40,
         compact=True,
         indent_type=IndentType.DOTS(width=3, style=Fore.dark_gray),
-        text_style=f"{Fore.green}",
+        text_style=f"{Fore.green}{Back.black}{Style.bold}",
+        text_style_full=True,
     ),
     "compact, bbar indent (grey_37), projections": FormatOptions(
         width=40,

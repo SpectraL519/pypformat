@@ -5,7 +5,7 @@ from .common_types import (
     TypeProjectionFunc,
     TypeProjectionFuncMapping,
 )
-from .format_options import ApplyTextStyleTo, FormatOptions
+from .format_options import FormatOptions
 from .formatter_types import (
     CustomMultilineFormatter,
     CustomNormalFormatter,

@@ -21,16 +21,16 @@ def _strlen_clean(s: str) -> int:
 
 
 def _apply_style_normal(s: str, style: str) -> str:
-    return f"{style}{s}{Style.reset}"
+    return f"{Style.reset}{style}{s}{Style.reset}"
 
 
 def _apply_style_override(s: str, style: str) -> str:
-    return f"{style}{_clean_style(s)}{Style.reset}"
+    return f"{Style.reset}{style}{_clean_style(s)}{Style.reset}"
 
 
 def _apply_style_preserve(s: str, style: str) -> str:
-    s_aligned = re.sub(ANSI_ESCAPE_RESET_PATTERN, style, s)
-    return f"{style}{s_aligned}{Style.reset}"
+    s_aligned = re.sub(ANSI_ESCAPE_RESET_PATTERN, f"{Style.reset}{style}", s)
+    return f"{Style.reset}{style}{s_aligned}{Style.reset}"
 
 
 TextStyleValue = Optional[str]

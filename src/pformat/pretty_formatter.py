@@ -5,7 +5,6 @@ from collections.abc import Iterable, Mapping
 from typing import Any, Optional
 
 from .format_options import (
-    ApplyTextStyleTo,
     FormatOptions,
     TypeFormatterFuncSequence,
     TypeProjectionFuncMapping,
@@ -34,7 +33,8 @@ class PrettyFormatter:
         compact: int = FormatOptions.default("compact"),
         indent_type: int = FormatOptions.default("indent_type"),
         text_style: TextStyleParam = FormatOptions.default("text_style"),
-        apply_text_style_to: ApplyTextStyleTo = FormatOptions.default("apply_text_style_to"),
+        # apply_text_style_to: ApplyTextStyleTo = FormatOptions.default("apply_text_style_to"),
+        text_style_full: bool = FormatOptions.default("text_style_full"),
         projections: Optional[TypeProjectionFuncMapping] = FormatOptions.default("projections"),
         formatters: Optional[TypeFormatterFuncSequence] = FormatOptions.default("formatters"),
     ) -> PrettyFormatter:
@@ -44,7 +44,7 @@ class PrettyFormatter:
                 compact=compact,
                 indent_type=indent_type,
                 text_style=TextStyle.new(text_style),
-                apply_text_style_to=apply_text_style_to,
+                text_style_full=text_style_full,
                 projections=projections,
                 formatters=formatters,
             )
@@ -122,7 +122,8 @@ class IterableFormatter(MultilineFormatter):
                 depth
             )
             if self._options.width is None or collecion_str_len <= self._options.width:
-                # return [self._options.text_style.apply_to(collecion_str)]
+                if self._options.text_style_full:
+                    return [self._options.text_style.apply_to(collecion_str)]
                 return [collecion_str]
 
         values = list()
@@ -132,7 +133,8 @@ class IterableFormatter(MultilineFormatter):
             values.extend(v_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
-        # return self._options.text_style.apply_to_each([opening, *values_fmt, closing])
+        if self._options.text_style_full:
+            return self._options.text_style.apply_to_each([opening, *values_fmt, closing])
         return [opening, *values_fmt, closing]
 
     @staticmethod
@@ -170,7 +172,8 @@ class MappingFormatter(MultilineFormatter):
             )
             mapping_str_len = _strlen_clean(mapping_str) + self._options.indent_type.length(depth)
             if self._options.width is None or mapping_str_len <= self._options.width:
-                # return [self._options.text_style.apply_to(mapping_str)]
+                if self._options.text_style_full:
+                    return [self._options.text_style.apply_to(mapping_str)]
                 return [mapping_str]
 
         values = list()
@@ -182,5 +185,6 @@ class MappingFormatter(MultilineFormatter):
             values.extend(item_values_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
-        # return self._options.text_style.apply_to_each(["{", *values_fmt, "}"])
+        if self._options.text_style_full:
+            return self._options.text_style.apply_to_each(["{", *values_fmt, "}"])
         return ["{", *values_fmt, "}"]
