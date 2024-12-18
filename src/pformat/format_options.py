@@ -1,7 +1,7 @@
 from dataclasses import MISSING, asdict, dataclass, field, fields
 from typing import Any, Optional
 
-from .common_types import TypeFormatterFuncSequence, TypeProjectionFuncMapping
+from .common_types import TypeFormatterFuncMutSequence, TypeProjectionFuncMapping
 from .indentation_utility import IndentType
 from .text_style import TextStyle
 
@@ -13,8 +13,9 @@ class FormatOptions:
     indent_type: IndentType = field(default_factory=lambda: IndentType.NONE())
     text_style: TextStyle = field(default_factory=TextStyle)
     style_entire_text: bool = False
+    # match_strict_types
     projections: Optional[TypeProjectionFuncMapping] = None
-    formatters: Optional[TypeFormatterFuncSequence] = None
+    formatters: Optional[TypeFormatterFuncMutSequence] = None
 
     def __post_init__(self):
         if not isinstance(self.text_style, TextStyle):

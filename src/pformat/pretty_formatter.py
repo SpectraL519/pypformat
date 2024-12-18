@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from .format_options import (
     FormatOptions,
-    TypeFormatterFuncSequence,
+    TypeFormatterFuncMutSequence,
     TypeProjectionFuncMapping,
 )
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeFormatter
@@ -35,7 +35,7 @@ class PrettyFormatter:
         text_style: TextStyleParam = FormatOptions.default("text_style"),
         style_entire_text: bool = FormatOptions.default("style_entire_text"),
         projections: Optional[TypeProjectionFuncMapping] = FormatOptions.default("projections"),
-        formatters: Optional[TypeFormatterFuncSequence] = FormatOptions.default("formatters"),
+        formatters: Optional[TypeFormatterFuncMutSequence] = FormatOptions.default("formatters"),
     ) -> PrettyFormatter:
         return PrettyFormatter(
             options=FormatOptions(
@@ -59,7 +59,7 @@ class PrettyFormatter:
         projected_obj = self._project(obj)
 
         for formatter in self._formatters:
-            if formatter.is_valid(projected_obj):
+            if formatter.has_valid_type(projected_obj):
                 return self._format_with(projected_obj, formatter, depth)
 
         return self._format_with(projected_obj, self._default_formatter, depth)

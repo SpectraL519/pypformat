@@ -1,4 +1,4 @@
-from colored import Back, Fore, Style
+from colored import Fore, Style
 from icecream import ic
 
 from pformat import FormatOptions, IndentType, PrettyFormatter, normal_formatter
@@ -15,7 +15,7 @@ FMT_OPTIONS = {
         width=40,
         compact=True,
         indent_type=IndentType.DOTS(width=3, style=Fore.dark_gray),
-        text_style=f"{Fore.green}{Back.black}{Style.bold}",
+        text_style=f"{Fore.green}{Style.bold}",
         style_entire_text=True,
     ),
     "projections, compact, bbar indent (grey_37), Fore.magenta": FormatOptions(
@@ -56,6 +56,7 @@ def test_dummy_collection():
     ]
 
     ic(collection)
+    print(f"{collection = }")
     print("\n" + ("-" * 50) + "\n")
 
     for config_name, fmt_opt in FMT_OPTIONS.items():
@@ -77,6 +78,7 @@ def test_dummy_mapping():
     }
 
     ic(mapping)
+    print(f"{mapping = }")
     print("\n" + ("-" * 50) + "\n")
 
     for config_name, fmt_opt in FMT_OPTIONS.items():
