@@ -8,18 +8,8 @@ from colored import Back, Fore, Style
 from pformat.format_options import FormatOptions
 from pformat.formatter_types import normal_formatter
 from pformat.indentation_utility import IndentType
-from pformat.pretty_formatter import IterableFormatter, PrettyFormatter
+from pformat.pretty_formatter import IterableFormatter, MappingFormatter, PrettyFormatter
 from pformat.text_style import TextStyle
-
-
-def test_iterable_formatter_get_parnens():
-    assert IterableFormatter.get_parens(list()) == ("[", "]")
-    assert IterableFormatter.get_parens(set()) == ("{", "}")
-    assert IterableFormatter.get_parens(frozenset()) == ("frozen{", "}")
-    assert IterableFormatter.get_parens(tuple()) == ("(", ")")
-    assert IterableFormatter.get_parens(range(3)) == ("(", ")")
-    assert IterableFormatter.get_parens(deque()) == ("deque([", "])")
-    assert IterableFormatter.get_parens(DummyIterable()) == (f"{DummyIterable.__name__}(", ")")
 
 
 class TestPrettyFormatterInitialization:
@@ -395,3 +385,40 @@ class TestPrettyFormatterCustomFormatters:
         default_formatter = PrettyFormatter()
 
         assert all(sut(value) == default_formatter(value) for value in default_type_values)
+
+
+class TestIterableFormatter:
+    def test_init_default(self):
+        fmt = PrettyFormatter.new()
+        sut = IterableFormatter(fmt)
+
+        assert sut.type is Iterable
+
+    def test_init_with_strict_type_matching(self):
+        fmt = PrettyFormatter.new(strict_type_matching=True)
+        sut = IterableFormatter(fmt)
+
+        assert sut.type is IterableFormatter._TYPES
+
+    def test_get_parnens(self):
+        assert IterableFormatter.get_parens(list()) == ("[", "]")
+        assert IterableFormatter.get_parens(set()) == ("{", "}")
+        assert IterableFormatter.get_parens(frozenset()) == ("frozen{", "}")
+        assert IterableFormatter.get_parens(tuple()) == ("(", ")")
+        assert IterableFormatter.get_parens(range(3)) == ("(", ")")
+        assert IterableFormatter.get_parens(deque()) == ("deque([", "])")
+        assert IterableFormatter.get_parens(DummyIterable()) == (f"{DummyIterable.__name__}(", ")")
+
+
+class TestMappingFormatter:
+    def test_init_default(self):
+        fmt = PrettyFormatter.new()
+        sut = MappingFormatter(fmt)
+
+        assert sut.type is Mapping
+
+    def test_init_with_strict_type_matching(self):
+        fmt = PrettyFormatter.new(strict_type_matching=True)
+        sut = MappingFormatter(fmt)
+
+        assert sut.type is MappingFormatter._TYPES
