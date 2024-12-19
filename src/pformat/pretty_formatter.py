@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from collections import deque
+from collections import ChainMap, OrderedDict, defaultdict, deque
 from collections.abc import Iterable, Mapping
-from typing import Any, Optional
+from types import MappingProxyType
+from typing import Any, Optional, Union
 
 from .format_options import (
     FormatOptions,
-    TypeFormatterFuncSequence,
+    TypeFormatterFuncMutSequence,
     TypeProjectionFuncMapping,
 )
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeFormatter
@@ -34,8 +35,9 @@ class PrettyFormatter:
         indent_type: int = FormatOptions.default("indent_type"),
         text_style: TextStyleParam = FormatOptions.default("text_style"),
         style_entire_text: bool = FormatOptions.default("style_entire_text"),
+        strict_type_matching: bool = FormatOptions.default("strict_type_matching"),
         projections: Optional[TypeProjectionFuncMapping] = FormatOptions.default("projections"),
-        formatters: Optional[TypeFormatterFuncSequence] = FormatOptions.default("formatters"),
+        formatters: Optional[TypeFormatterFuncMutSequence] = FormatOptions.default("formatters"),
     ) -> PrettyFormatter:
         return PrettyFormatter(
             options=FormatOptions(
@@ -44,6 +46,7 @@ class PrettyFormatter:
                 indent_type=indent_type,
                 text_style=TextStyle.new(text_style),
                 style_entire_text=style_entire_text,
+                strict_type_matching=strict_type_matching,
                 projections=projections,
                 formatters=formatters,
             )
@@ -59,7 +62,7 @@ class PrettyFormatter:
         projected_obj = self._project(obj)
 
         for formatter in self._formatters:
-            if formatter.is_valid(projected_obj):
+            if formatter.has_valid_type(projected_obj, self._options.strict_type_matching):
                 return self._format_with(projected_obj, formatter, depth)
 
         return self._format_with(projected_obj, self._default_formatter, depth)
@@ -103,10 +106,16 @@ class DefaultFormatter(NormalFormatter):
 
 
 class IterableFormatter(MultilineFormatter):
+    _TYPES = Union[list, set, frozenset, tuple, range, deque, memoryview]
+
     def __init__(self, base_formatter: PrettyFormatter):
-        super().__init__(Iterable)
         self._base_formatter = base_formatter
         self._options = self._base_formatter._options
+
+        if self._options.strict_type_matching:
+            super().__init__(IterableFormatter._TYPES)
+        else:
+            super().__init__(Iterable)
 
     def __call__(self, collection: Iterable, depth: int = 0) -> list[str]:
         self._check_type(collection)
@@ -152,10 +161,16 @@ class IterableFormatter(MultilineFormatter):
 
 
 class MappingFormatter(MultilineFormatter):
+    _TYPES = Union[dict, defaultdict, OrderedDict, MappingProxyType, ChainMap]
+
     def __init__(self, base_formatter: PrettyFormatter):
-        super().__init__(Mapping)
         self._base_formatter = base_formatter
         self._options = self._base_formatter._options
+
+        if self._options.strict_type_matching:
+            super().__init__(MappingFormatter._TYPES)
+        else:
+            super().__init__(Mapping)
 
     def __call__(self, mapping: Mapping, depth: int = 0) -> list[str]:
         self._check_type(mapping)

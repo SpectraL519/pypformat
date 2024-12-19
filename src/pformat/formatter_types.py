@@ -1,8 +1,33 @@
 from __future__ import annotations
 
-from typing import Any
+import sys
+from typing import Any, Union
 
 from .common_types import MultilineTypeFormatterFunc, NormalTypeFormatterFunc
+
+if sys.version_info >= (3, 10):
+    import types
+
+    union_type = types.UnionType
+else:
+    union_type = None
+
+
+def _is_union(t: type) -> bool:
+    return (
+        (union_type is not None and isinstance(t, union_type))  # `|` union (Python 3.10+)
+        or (hasattr(t, "__origin__") and t.__origin__ is Union)  # typing.Union
+    )
+
+
+def _has_valid_type(obj: Any, t: type, strict: bool) -> bool:
+    if t is Any:
+        return True
+
+    if _is_union(t):
+        return any(_has_valid_type(obj, _t, strict) for _t in t.__args__)
+
+    return type(obj) is t if strict else isinstance(obj, t)
 
 
 class TypeFormatter:
@@ -23,10 +48,8 @@ class TypeFormatter:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.type.__name__})"
 
-    def is_valid(self, obj: Any) -> None:
-        if self.type is Any:
-            return True
-        return isinstance(obj, self.type)
+    def has_valid_type(self, obj: Any, strict: bool = False) -> bool:
+        return _has_valid_type(obj, self.type, strict)
 
     def _check_type(self, obj: Any) -> None:
         if not isinstance(obj, self.type):

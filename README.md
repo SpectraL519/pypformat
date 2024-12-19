@@ -14,3 +14,4 @@ Python pretty formatting package
   - (important/caution) using projections:
     - don't project a type onto a list of the same type - infinite recursion
     - `text_style` may/will not be applied for custom-formatted types with `style_entire_text=False`
+- Remove the `PrettyFormatter.new` and `FormatOptions.default` methods ?

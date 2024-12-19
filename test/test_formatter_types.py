@@ -1,5 +1,6 @@
+import sys
 from itertools import product
-from typing import Any
+from typing import Any, Union
 
 import pytest
 
@@ -33,18 +34,24 @@ class InvalidType:
 class TestTypeFormatterCommon:
     FORMATTER_TYPES = (TypeFormatter, NormalFormatter, MultilineFormatter)
 
+    def __gen_derived_type(self, t: type) -> type:
+        class derived(t):
+            pass
+
+        return derived
+
     @pytest.fixture(
-        autouse=True,
         params=product(FORMATTER_TYPES, TYPES),
         ids=[
             f"fmt_type={fmt_t.__name__},t={t.__name__}"
             for fmt_t, t in product(FORMATTER_TYPES, TYPES)
         ],
     )
-    def set_type_param(self, request: pytest.FixtureRequest) -> TypeFormatter:
+    def set_fmt_and_type_params(self, request: pytest.FixtureRequest) -> TypeFormatter:
         self.fmt_type, self.type = request.param
+        self.derived_type = self.__gen_derived_type(self.type)
 
-    def test_eq_with_non_formatter_type(self):
+    def test_eq_with_non_formatter_type(self, set_fmt_and_type_params):
         sut = self.fmt_type(self.type)
 
         with pytest.raises(TypeError) as err:
@@ -55,25 +62,62 @@ class TestTypeFormatterCommon:
             == f"Cannot compare a `{self.fmt_type.__name__}` instance to an instance of `InvalidType`"
         )
 
-    def test_eq_with_valid_formatter_type(self):
+    def test_eq_with_valid_formatter_type(self, set_fmt_and_type_params):
         sut = self.fmt_type(self.type)
 
         assert all(sut == ft(self.type) for ft in TestTypeFormatterCommon.FORMATTER_TYPES)
         assert all(sut != ft(InvalidType) for ft in TestTypeFormatterCommon.FORMATTER_TYPES)
 
-    def test_repr(self):
+    def test_repr(self, set_fmt_and_type_params):
         sut = self.fmt_type(self.type)
         assert repr(sut) == f"{self.fmt_type.__name__}({self.type.__name__})"
 
-    def test_is_valid_with_concrete_type(self):
-        sut = self.fmt_type(self.type)
-        assert sut.is_valid(self.type())
-        assert not sut.is_valid(InvalidType())
+    STRICT_VALS = [True, False]
 
-    def test_is_valid_with_any_type(self):
+    @pytest.mark.parametrize("strict", STRICT_VALS, ids=[f"{strict=}" for strict in STRICT_VALS])
+    def test_has_valid_type_with_any_type(self, set_fmt_and_type_params, strict: bool):
         sut = self.fmt_type(Any)
-        assert sut.is_valid(self.type())
-        assert sut.is_valid(InvalidType())
+        assert sut.has_valid_type(self.type(), strict=strict)
+        assert sut.has_valid_type(InvalidType(), strict=strict)
+
+    def test_has_valid_type_with_concrete_type(self, set_fmt_and_type_params):
+        sut = self.fmt_type(self.type)
+
+        assert sut.has_valid_type(self.type())
+        assert sut.has_valid_type(self.derived_type())
+        assert not sut.has_valid_type(InvalidType())
+
+    def test_has_valid_type_with_concrete_type_strict(self, set_fmt_and_type_params):
+        sut = self.fmt_type(self.type)
+
+        assert sut.has_valid_type(self.type(), strict=True)
+        assert not sut.has_valid_type(self.derived_type(), strict=True)
+        assert not sut.has_valid_type(InvalidType(), strict=True)
+
+    if sys.version_info >= (3, 10):
+        union_type = int | float | str | bytes | list | dict
+    else:
+        union_type = Union[int, float, str, bytes, list, dict]
+
+    @pytest.mark.parametrize(
+        "fmt_type", FORMATTER_TYPES, ids=[f"{fmt_type=}" for fmt_type in FORMATTER_TYPES]
+    )
+    def test_has_valid_type_with_union_type(self, fmt_type: type):
+        sut = fmt_type(self.union_type)
+
+        assert all(sut.has_valid_type(t()) for t in TYPES)
+        assert all(sut.has_valid_type(self.__gen_derived_type(t)()) for t in TYPES)
+        assert not sut.has_valid_type(InvalidType())
+
+    @pytest.mark.parametrize(
+        "fmt_type", FORMATTER_TYPES, ids=[f"{fmt_type=}" for fmt_type in FORMATTER_TYPES]
+    )
+    def test_has_valid_type_with_union_type_strict(self, fmt_type: type):
+        sut = fmt_type(self.union_type)
+
+        assert all(sut.has_valid_type(t(), strict=True) for t in TYPES)
+        assert all(not sut.has_valid_type(self.__gen_derived_type(t)(), strict=True) for t in TYPES)
+        assert not sut.has_valid_type(InvalidType(), strict=True)
 
 
 class TestTypeFormatter:
