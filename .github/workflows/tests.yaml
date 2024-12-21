@@ -1,20 +1,28 @@
-name: tests_coverage
+name: tests
 on:
   push:
     branches:
       - '*'
+    paths:
+        - .github/workflows/tests.yaml
+        - src/**
+        - test/**
+        - pyproject.toml
+        - tox.ini
+
   pull_request:
     branches:
       - '*'
     types:
       - opened
       - synchronize
-  paths:
-    - .github/workflows/tests.yaml
-    - src/**
-    - test/**
-    - pyproject.toml
-    - tox.ini
+    paths:
+      - .github/workflows/tests.yaml
+      - src/**
+      - test/**
+      - pyproject.toml
+      - tox.ini
+
 
 jobs:
   run_tests_coverage:
