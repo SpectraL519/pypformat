@@ -42,14 +42,6 @@ jobs:
           echo "> Root dir:"
           ls -al
 
-      # - name: Upload the JSON coverage report
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: coverage-json
-      #     path: .coverage.json
-      #     include-hidden-files: true
-
       - name: Prepare the covbadge data
         run: |
           export TOTAL_COV=$(python -c "import json; print(json.load(open('.coverage.json'))['totals']['percent_covered_display'])")
@@ -68,12 +60,3 @@ jobs:
           valColorRange: ${{ env.total_cov }}
           minColorRange: 50
           maxColorRange: 90
-
-      # Optional: Upload the badge as an artifact (if you want to store it for reference)
-      # - name: Upload coverage badge artifact
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     message: ${{ env.total_cov }}%
-      #     name: coverage-badge
-      #     path: coverage-badge.svg
