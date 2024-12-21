@@ -14,7 +14,7 @@ COLLECTION = [
     "string",
     b"f\xcd\x11",
     bytearray([10, 15, 20]),
-    range(5)
+    range(5),
 ]
 
 MAPPING = {

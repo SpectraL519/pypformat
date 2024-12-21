@@ -17,9 +17,6 @@ src/pypformat.egg-info/
 
 # code coverage
 .coverage*
-coverage.*
-coverage_*/
-htmlcov/
 
 # other
 tmp/

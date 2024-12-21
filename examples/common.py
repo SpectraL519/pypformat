@@ -1,9 +1,10 @@
-import pformat as pf
-
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
-from collections.abc import Iterable
-from colored import Fore, Back, Style
+
+from colored import Fore
+
+import pformat as pf
 
 
 def _process_description(description: str) -> str:
@@ -31,6 +32,7 @@ def display(item: Any, configs: Iterable[Config], with_description: bool = False
         #     print(f"{config.description}")
         print(formatter(item), "\n")
 
+
 FMT_CONFIGS = [
     Config(
         name="default",
@@ -42,20 +44,20 @@ FMT_CONFIGS = [
             width=40,
             compact=True,
             indent_type=pf.IndentType.DOTS(),
-        )
+        ),
     ),
     Config(
-        name = "compact | styled",
+        name="compact | styled",
         fmt_opts=pf.FormatOptions(
             width=40,
             compact=True,
             indent_type=pf.IndentType.THICK_DOTS(width=3, style=Fore.dark_gray),
             text_style=Fore.green,
             style_entire_text=True,
-        )
+        ),
     ),
     Config(
-        name = "compact | projections | styled",
+        name="compact | projections | styled",
         fmt_opts=pf.FormatOptions(
             width=40,
             compact=True,
@@ -65,7 +67,7 @@ FMT_CONFIGS = [
                 float: lambda f: int(f),
                 bytes: lambda b: bytearray(b),
             },
-        )
+        ),
     ),
     Config(
         name="formatters | styled",
@@ -79,5 +81,5 @@ FMT_CONFIGS = [
                 pf.normal_formatter(str, lambda s, _: f's"{s}"'),
             ],
         ),
-    )
+    ),
 ]
