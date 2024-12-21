@@ -1,19 +1,26 @@
-name: tests
+name: tests_coverage
 on:
   push:
     branches:
       - '*'
-    paths:
-      - .github/workflows/tests.yaml
-      - src/**
-      - test/**
-      - pyproject.toml
+  pull_request:
+    branches:
+      - '*'
+    types:
+      - opened
+      - synchronize
+  paths:
+    - .github/workflows/tests.yaml
+    - src/**
+    - test/**
+    - pyproject.toml
+    - tox.ini
 
 jobs:
-  run_tests_with_coverage:
-    name: Run tests with coverage
+  run_tests_coverage:
+    name: Run project tests (coverage)
     runs-on: ubuntu-latest
-
+    if: github.ref == 'refs/heads/master' || github.event_name == 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,20 +42,12 @@ jobs:
       - name: Run tox
         run: tox
 
-      - name: Debug coverage files
-        if: failure() || always()
-        run: |
-          cat .coverage.json || echo "The `.coverage.json` was not found!"
-          echo "> Root dir:"
-          ls -al
-
       - name: Prepare the covbadge data
         run: |
           export TOTAL_COV=$(python -c "import json; print(json.load(open('.coverage.json'))['totals']['percent_covered_display'])")
           echo total_cov=$TOTAL_COV >> $GITHUB_ENV
           echo ### Total coverage: ${TOTAL_COV}% >> $GITHUB_STEP_SUMMARY
 
-      # Generate the the coverage badge
       - name: Generate the covbadge
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
@@ -60,3 +59,30 @@ jobs:
           valColorRange: ${{ env.total_cov }}
           minColorRange: 50
           maxColorRange: 90
+
+  run_tests_simple:
+    name: Run project tests (simple)
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/master' && github.event_name != 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements-ci-tests-simple.txt
+
+      - name: Run tests for ${{ matrix.python-version }}
+        run: |
+          python -m pytest -v
