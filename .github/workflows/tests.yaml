@@ -61,7 +61,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_TOKEN }}
-          gistID: f6cec4c4c8e1733cfe45f807918a128a
+          gistID: 60ba7283e412ea91cd2db2b3b649003d
           label: coverage
           filename: pypf_covbadge.json
           message: ${{ env.total_cov }}%
