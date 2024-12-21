@@ -50,19 +50,30 @@ jobs:
       #     path: .coverage.json
       #     include-hidden-files: true
 
+      - name: Prepare the covbadge data
+        run: |
+          export TOTAL_COV=$(python -c "import json; print(json.load(open('.coverage.json'))['totals']['percent_covered_display'])")
+          echo total_cov=$TOTAL_COV >> $GITHUB_ENV
+          echo ### Total coverage: ${TOTAL_COV}% >> $GITHUB_STEP_SUMMARY
+
       # Generate the the coverage badge
-      - name: Generate coverage badge
+      - name: Generate the covbadge
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
-          coverage: .coverage.json
-          label: 'coverage'
-          style: 'flat' # You can customize this style (e.g., "flat-square", "plastic", etc.)
-          color: 'green'  # You can customize the color (e.g., 'green', 'blue', etc.)
+          auth: ${{ secrets.GIST_TOKEN }}
+          gistID: f6cec4c4c8e1733cfe45f807918a128a
+          label: coverage
+          filename: pypf_covbadge.json
+          message: ${{ env.total_cov }}%
+          valColorRange: ${{ env.total_cov }}
+          minColorRange: 50
+          maxColorRange: 90
 
       # Optional: Upload the badge as an artifact (if you want to store it for reference)
-      - name: Upload coverage badge artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-badge
-          path: coverage-badge.svg
+      # - name: Upload coverage badge artifact
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     message: ${{ env.total_cov }}%
+      #     name: coverage-badge
+      #     path: coverage-badge.svg
