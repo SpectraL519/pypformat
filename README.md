@@ -12,7 +12,7 @@
 `PyPformat` is a simple and customizable python pretty formatting package and an alternative to the [pprint library](https://docs.python.org/3/library/pprint.html).
 
 > [!IMPORTANT]
-> The minimum python version required to use the `PyPformat` package is **3.9**.
+> The minimum (tested) python version required to use the `PyPformat` package is **3.9**.
 
 <br />
 <br />

@@ -30,8 +30,8 @@ class PrettyFormatter:
 
     @staticmethod
     def new(
-        width: int = FormatOptions.default("width"),
-        compact: int = FormatOptions.default("compact"),
+        compact: bool = FormatOptions.default("compact"),
+        width: Optional[int] = FormatOptions.default("width"),
         indent_type: int = FormatOptions.default("indent_type"),
         text_style: TextStyleParam = FormatOptions.default("text_style"),
         style_entire_text: bool = FormatOptions.default("style_entire_text"),
