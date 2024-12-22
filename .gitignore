@@ -2,6 +2,7 @@
 .vscode/
 
 # build and distribution files
+README_*.md
 build/
 dist/
 src/pypformat.egg-info/

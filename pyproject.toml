@@ -2,15 +2,14 @@
 requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
 
-
 [project]
 name = "pypformat"
-version = "1.0.pre.1"
+version = "1.0.pre.3"
 description = "Python pretty formatting package"
 authors = [
   {name = "SpectraL519"}
 ]
-readme = {file = "README.md", content-type = "text/markdown; charset=UTF-8; variant=GFM"}
+readme = {file = "README_pypi.md", content-type = "text/markdown; charset=UTF-8; variant=GFM"}
 license = {file = "LICENSE"}
 requires-python = ">= 3.9"
 dependencies = ["colored==2.2.4"]
