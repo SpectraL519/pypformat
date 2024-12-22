@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Any
 
 from colored import Fore
@@ -7,29 +7,18 @@ from colored import Fore
 import pformat as pf
 
 
-def _process_description(description: str) -> str:
-    lines = description.split("\n")
-    lines = [f"> {line}" for line in lines]
-    return "\n".join(lines)
-
-
 @dataclass
 class Config:
     name: str
     fmt_opts: pf.FormatOptions
 
-    def params_description(self) -> str:
-        pass
 
-
-def display(item: Any, configs: Iterable[Config], with_description: bool = False):
+def display(item: Any, configs: Iterable[Config]):
     print(f"{item = }\n")
 
     for config in configs:
         formatter = pf.PrettyFormatter(config.fmt_opts)
         print(f"--- {config.name} ---")
-        # if (with_description):
-        #     print(f"{config.description}")
         print(formatter(item), "\n")
 
 
