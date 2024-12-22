@@ -77,9 +77,7 @@ The `PyPformat` project is licenced under the [MIT Licence](https://opensource.o
 
 ## TODO
 
-- Remove `test_dummy.py` before release
 - Add notes:
   - (important/caution) using projections:
     - don't project a type onto a list of the same type - infinite recursion
     - `text_style` may/will not be applied for custom-formatted types with `style_entire_text=False`
-- Remove the `PrettyFormatter.new` and `FormatOptions.default` methods ?

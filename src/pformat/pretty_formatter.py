@@ -3,11 +3,10 @@ from __future__ import annotations
 from collections import ChainMap, OrderedDict, defaultdict, deque
 from collections.abc import Iterable, Mapping
 from types import MappingProxyType
-from typing import Any, Optional, Union
+from typing import Any, MutableSequence, Optional, Union
 
 from .format_options import (
     FormatOptions,
-    TypeFormatterFuncMutSequence,
     TypeProjectionFuncMapping,
 )
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeFormatter
@@ -31,13 +30,13 @@ class PrettyFormatter:
     @staticmethod
     def new(
         compact: bool = FormatOptions.default("compact"),
-        width: Optional[int] = FormatOptions.default("width"),
+        width: int = FormatOptions.default("width"),
         indent_type: int = FormatOptions.default("indent_type"),
         text_style: TextStyleParam = FormatOptions.default("text_style"),
         style_entire_text: bool = FormatOptions.default("style_entire_text"),
-        strict_type_matching: bool = FormatOptions.default("strict_type_matching"),
+        exact_type_matching: bool = FormatOptions.default("exact_type_matching"),
         projections: Optional[TypeProjectionFuncMapping] = FormatOptions.default("projections"),
-        formatters: Optional[TypeFormatterFuncMutSequence] = FormatOptions.default("formatters"),
+        formatters: Optional[MutableSequence[TypeFormatter]] = FormatOptions.default("formatters"),
     ) -> PrettyFormatter:
         return PrettyFormatter(
             options=FormatOptions(
@@ -46,7 +45,7 @@ class PrettyFormatter:
                 indent_type=indent_type,
                 text_style=TextStyle.new(text_style),
                 style_entire_text=style_entire_text,
-                strict_type_matching=strict_type_matching,
+                exact_type_matching=exact_type_matching,
                 projections=projections,
                 formatters=formatters,
             )
@@ -62,7 +61,7 @@ class PrettyFormatter:
         projected_obj = self._project(obj)
 
         for formatter in self._formatters:
-            if formatter.has_valid_type(projected_obj, self._options.strict_type_matching):
+            if formatter.has_valid_type(projected_obj, self._options.exact_type_matching):
                 return self._format_with(projected_obj, formatter, depth)
 
         return self._format_with(projected_obj, self._default_formatter, depth)
@@ -112,7 +111,7 @@ class IterableFormatter(MultilineFormatter):
         self._base_formatter = base_formatter
         self._options = self._base_formatter._options
 
-        if self._options.strict_type_matching:
+        if self._options.exact_type_matching:
             super().__init__(IterableFormatter._TYPES)
         else:
             super().__init__(Iterable)
@@ -129,7 +128,7 @@ class IterableFormatter(MultilineFormatter):
             collecion_str_len = strlen_no_style(collecion_str) + self._options.indent_type.length(
                 depth
             )
-            if self._options.width is None or collecion_str_len <= self._options.width:
+            if collecion_str_len <= self._options.width:
                 if self._options.style_entire_text:
                     return [self._options.text_style.apply_to(collecion_str)]
                 return [collecion_str]
@@ -167,7 +166,7 @@ class MappingFormatter(MultilineFormatter):
         self._base_formatter = base_formatter
         self._options = self._base_formatter._options
 
-        if self._options.strict_type_matching:
+        if self._options.exact_type_matching:
             super().__init__(MappingFormatter._TYPES)
         else:
             super().__init__(Mapping)
@@ -185,7 +184,7 @@ class MappingFormatter(MultilineFormatter):
                 + "}"
             )
             mapping_str_len = strlen_no_style(mapping_str) + self._options.indent_type.length(depth)
-            if self._options.width is None or mapping_str_len <= self._options.width:
+            if mapping_str_len <= self._options.width:
                 if self._options.style_entire_text:
                     return [self._options.text_style.apply_to(mapping_str)]
                 return [mapping_str]

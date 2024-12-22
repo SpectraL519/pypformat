@@ -46,6 +46,8 @@ INDENT_TYPE_VALS = [
 RECOGNIZABLE_ITERABLE_TYPES = [list, set, frozenset, tuple, deque]
 RECOGNIZABLE_NHASH_ITERABLE_TYPES = [list, tuple, deque]
 
+INT_UNBOUND = 10e9
+
 
 class DummyIterable:
     def __init__(self, nested: bool = False):
@@ -193,7 +195,7 @@ class TestPrettyFormatterCompact:
     def sut(self) -> PrettyFormatter:
         return PrettyFormatter.new(
             compact=True,
-            width=None,
+            width=INT_UNBOUND,
         )
 
     @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_ITERABLE_TYPES)
@@ -327,7 +329,7 @@ class TestPrettyFormatterProjections:
 
         sut = PrettyFormatter.new(
             compact=True,
-            width=None,
+            width=INT_UNBOUND,
             projections={
                 float: float_proj,
                 str: str_proj,
@@ -395,7 +397,7 @@ class TestIterableFormatter:
         assert sut.type is Iterable
 
     def test_init_with_strict_type_matching(self):
-        fmt = PrettyFormatter.new(strict_type_matching=True)
+        fmt = PrettyFormatter.new(exact_type_matching=True)
         sut = IterableFormatter(fmt)
 
         assert sut.type is IterableFormatter._TYPES
@@ -418,7 +420,7 @@ class TestMappingFormatter:
         assert sut.type is Mapping
 
     def test_init_with_strict_type_matching(self):
-        fmt = PrettyFormatter.new(strict_type_matching=True)
+        fmt = PrettyFormatter.new(exact_type_matching=True)
         sut = MappingFormatter(fmt)
 
         assert sut.type is MappingFormatter._TYPES

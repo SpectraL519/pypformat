@@ -3,6 +3,7 @@
 - [Baisc usage](#basic-usage)
 - [Format options](#format-options)
   - [Options overview](#options-overview)
+  - Advanced options descriptions ???
 
 <br />
 <br />
@@ -27,7 +28,12 @@ Optionally, you can set the `depth: int` parameter for the call of `formatter` (
 
 ## Format options
 
-The `PrettyFormatter` class can be customized using formatting options, which alter the behaviour of the `PrettyFormatter`. This can be done in two ways:
+The `PrettyFormatter` class can be customized using formatting options, which alter the behaviour of the `PrettyFormatter`.
+
+> [!NOTE]
+> The options are stored in a `FormatOptions` dataclass, which is defined in the [format_options.py](/src/pformat/format_options.py) file.
+
+This can be done in two ways:
 
 - Using the `FormatOptions` class directly:
 
@@ -48,13 +54,29 @@ Both of these allow for specifying the same options, which are described in the 
 
 ### Options overview
 
-| **Option** | **Type** | **Default value** | **Description** |
+The table below contains a brief overview of all available formatting options.
+
+| **Name** | **Type** | **Default value** | **Description** |
 | :- | :- | :- | :- |
-| `compact` | `bool` | `False` | ... |
-| `width` | `Optional[int]` | `50` | ... |
-| `indent_type` | `IndentType` | `IndentType.NONE()` | ... |
-| `text_style` | `TextStyle` | `TextStyle()` | ... |
-| `style_entire_text` | `bool` | `False` | ... |
-| `strict_type_matching` | `bool` | `False` | ... |
-| `projections` | <pre>Optional[<br>&nbsp;TypeProjectionFuncMapping<br>]</pre> | `None` | ... |
-| `formatters` | <pre>Optional[<br>&nbsp;TypeFormatterFuncMutSequence<br>]</pre> | `None` | ... |
+| `compact` | `bool` | `False` | If `True`, the pretty formatter will *try to* fit the elements in a single line within the constaints of the `width` parameter. |
+| `width` | `int` | `50` | Specifies the limit of the `compact` packing of the formatted elements.<br/>If the length of the formatted string is greater than the parameter's value, the pretty formatter will *try to* split the string into multiple lines.  |
+| [`indent_type`](#option-indent_type) | `IndentType` | `IndentType.NONE()` | Specifies the type of the indentation markers used for nested elements in collections and mappings. |
+| [`text_style`](#option-text_style) | `TextStyle` | `TextStyle()` | Specifies the style, which will be applied to the text when formatting. |
+| [`style_entire_text`](#option-style_entire_text) | `bool` | `False` | If `True`, the pretty formatter will apply the given style to the entire text.<br/>If `False`, the style will only be applied to individual values. |
+| [`exact_type_matching`](#option-exact_type_matching) | `bool` | `False` | If `True`, the pretty formatter will apply the `projections` and `formatters` to items based on the `isinstance` checks.<br/>If `False`, `type(item) is <specified-type>` checks will be used. |
+| [`projections`](#option-projections) | `TypeProjectionFuncMapping`<br>(Optional) | `None` | A *type to projection function* mapping, where the specified projection functions will be applied to each item **recursively** before formatting - only if the item's type is a valid key in the mapping. |
+| [`formatters`](#option-formatters) | `MutableSequence[TypeFormatter]`<br/>(Optional) | `None` | A mutable sequence of `TypeFormatter` objects, which is prepended to a list of predefined type formatters, which is iterated in order during the process of type matching while formatting data. |
+
+<br />
+
+#### Option: `indent_type`
+
+#### Option: `text_style`
+
+#### Option: `style_entire_text`
+
+#### Option: `exact_type_matching`
+
+#### Option: `projections`
+
+#### Option: `formatters`

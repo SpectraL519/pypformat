@@ -1,7 +1,6 @@
 from .common_types import (
     MultilineTypeFormatterFunc,
     NormalTypeFormatterFunc,
-    TypeFormatterFuncMutSequence,
     TypeProjectionFunc,
     TypeProjectionFuncMapping,
 )
