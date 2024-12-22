@@ -3,7 +3,6 @@
 - [Baisc usage](#basic-usage)
 - [Format options](#format-options)
   - [Options overview](#options-overview)
-  - Advanced options descriptions ???
 
 <br />
 <br />
@@ -69,14 +68,38 @@ The table below contains a brief overview of all available formatting options.
 
 <br />
 
-#### Option: `indent_type`
+<details>
+  <summary><h4 id="option-indent_type">Option: <code>indent_type</code></h4></summary>
 
-#### Option: `text_style`
+  Description
+</details>
 
-#### Option: `style_entire_text`
+<details>
+  <summary><h4 id="option-text_style">Option: <code>text_style</code></h4></summary>
 
-#### Option: `exact_type_matching`
+  Description
+</details>
 
-#### Option: `projections`
+<details>
+  <summary><h4 id="option-style_entire_text">Option: <code>style_entire_text</code></h4></summary>
 
-#### Option: `formatters`
+  Description
+</details>
+
+<details>
+  <summary><h4 id="option-exact_type_matching">Option: <code>exact_type_matching</code></h4></summary>
+
+  Description
+</details>
+
+<details>
+  <summary><h4 id="option-projections">Option: <code>projections</code></h4></summary>
+
+  Description
+</details>
+
+<details>
+  <summary><h4 id="option-formatters">Option: <code>formatters</code></h4></summary>
+
+  Description
+</details>
