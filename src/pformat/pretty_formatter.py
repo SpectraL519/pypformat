@@ -140,9 +140,11 @@ class IterableFormatter(MultilineFormatter):
             values.extend(v_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
+        lines_fmt = [opening, *values_fmt, closing]
+
         if self._options.style_entire_text:
-            return self._options.text_style.apply_to_each([opening, *values_fmt, closing])
-        return [opening, *values_fmt, closing]
+            return self._options.text_style.apply_to_each(lines_fmt)
+        return lines_fmt
 
     @staticmethod
     def get_parens(collection: Iterable) -> tuple[str, str]:
@@ -201,6 +203,7 @@ class MappingFormatter(MultilineFormatter):
 
         values_fmt = self._options.indent_type.add_to_each(values)
         lines_fmt = [opening, *values_fmt, closing]
+
         if self._options.style_entire_text:
             return self._options.text_style.apply_to_each(lines_fmt)
         return lines_fmt
