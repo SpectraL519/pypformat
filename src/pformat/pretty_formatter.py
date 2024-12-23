@@ -160,7 +160,7 @@ class IterableFormatter(MultilineFormatter):
 
 
 class MappingFormatter(MultilineFormatter):
-    _TYPES = Union[dict, defaultdict, OrderedDict, MappingProxyType, ChainMap]
+    _TYPES = Union[dict, defaultdict, OrderedDict, ChainMap, MappingProxyType]
 
     def __init__(self, base_formatter: PrettyFormatter):
         self._base_formatter = base_formatter
