@@ -34,16 +34,17 @@ class InvalidType:
 def gen_concrete_fmt_type(fmt_type: type) -> type:
     class ConcreteFormatter(fmt_type):
         def __call__(self, obj: Any, depth: int = 0) -> str:
-            super().__call__(obj, depth)
+            fmt_type.__call__(self, obj, depth)
 
     return ConcreteFormatter
 
 
-class TestTypeFormatterCommon:
-    FORMATTER_BASE_TYPES = [
-        gen_concrete_fmt_type(ft) for ft in (TypeFormatter, NormalFormatter, MultilineFormatter)
-    ]
+FORMATTER_TYPES = [
+    gen_concrete_fmt_type(ft) for ft in (TypeFormatter, NormalFormatter, MultilineFormatter)
+]
 
+
+class TestTypeFormatterCommon:
     def __gen_derived_type(self, t: type) -> type:
         class derived(t):
             pass
@@ -51,10 +52,10 @@ class TestTypeFormatterCommon:
         return derived
 
     @pytest.fixture(
-        params=product(FORMATTER_BASE_TYPES, TYPES),
+        params=product(FORMATTER_TYPES, TYPES),
         ids=[
             f"fmt_type={fmt_t.__name__},t={t.__name__}"
-            for fmt_t, t in product(FORMATTER_BASE_TYPES, TYPES)
+            for fmt_t, t in product(FORMATTER_TYPES, TYPES)
         ],
     )
     def set_fmt_and_type_params(self, request: pytest.FixtureRequest) -> TypeFormatter:
@@ -75,8 +76,8 @@ class TestTypeFormatterCommon:
     def test_eq_with_valid_formatter_type(self, set_fmt_and_type_params):
         sut = self.fmt_type(self.type)
 
-        assert all(sut == ft(self.type) for ft in TestTypeFormatterCommon.FORMATTER_BASE_TYPES)
-        assert all(sut != ft(InvalidType) for ft in TestTypeFormatterCommon.FORMATTER_BASE_TYPES)
+        assert all(sut == ft(self.type) for ft in FORMATTER_TYPES)
+        assert all(sut != ft(InvalidType) for ft in FORMATTER_TYPES)
 
     def test_repr(self, set_fmt_and_type_params):
         sut = self.fmt_type(self.type)
@@ -112,7 +113,7 @@ class TestTypeFormatterCommon:
         union_type = Union[int, float, str, bytes, list, dict]
 
     @pytest.mark.parametrize(
-        "fmt_type", FORMATTER_BASE_TYPES, ids=[f"{fmt_type=}" for fmt_type in FORMATTER_BASE_TYPES]
+        "fmt_type", FORMATTER_TYPES, ids=[f"{fmt_type=}" for fmt_type in FORMATTER_TYPES]
     )
     def test_has_valid_type_with_union_type(self, fmt_type: type):
         sut = gen_concrete_fmt_type(fmt_type)(self.union_type)
@@ -122,7 +123,7 @@ class TestTypeFormatterCommon:
         assert not sut.has_valid_type(InvalidType())
 
     @pytest.mark.parametrize(
-        "fmt_type", FORMATTER_BASE_TYPES, ids=[f"{fmt_type=}" for fmt_type in FORMATTER_BASE_TYPES]
+        "fmt_type", FORMATTER_TYPES, ids=[f"{fmt_type=}" for fmt_type in FORMATTER_TYPES]
     )
     def test_has_valid_type_with_union_type_exact_match(self, fmt_type: type):
         sut = fmt_type(self.union_type)
@@ -135,10 +136,13 @@ class TestTypeFormatterCommon:
 
 
 class TestTypeFormatter:
-    @pytest.fixture(params=TYPES, ids=[f"t={t.__name__}" for t in TYPES])
+    @pytest.fixture(
+        params=list(product(FORMATTER_TYPES, TYPES)),
+        ids=[f"fmt_type={ft},t={t.__name__}" for ft, t in product(FORMATTER_TYPES, TYPES)],
+    )
     def sut(self, request: pytest.FixtureRequest) -> TypeFormatter:
-        self.type = request.param
-        return gen_concrete_fmt_type(TypeFormatter)(self.type)
+        self.fmt_type, self.type = request.param
+        return self.fmt_type(self.type)
 
     def test_call(self, sut: TypeFormatter):
         with pytest.raises(NotImplementedError) as err:

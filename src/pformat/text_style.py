@@ -63,8 +63,17 @@ class TextStyle:
         return [self.apply_to(s) for s in s_collection]
 
     @staticmethod
-    def new(style: TextStyleParam) -> TextStyle:
-        if style is None:
-            return TextStyle()
+    def new(style: TextStyleParam, mode: Optional[Mode] = None) -> TextStyle:
+        def _mode(
+            _in: Optional[TextStyle.Mode], _default: TextStyle.Mode = TextStyle.Mode.preserve
+        ) -> TextStyle.Mode:
+            return _in or _default
 
-        return TextStyle(style) if isinstance(style, str) else style
+        if style is None:
+            return TextStyle(mode=_mode(mode))
+
+        return (
+            TextStyle(style, mode=_mode(mode))
+            if isinstance(style, str)
+            else TextStyle(style.value, mode=_mode(mode, style.mode))
+        )

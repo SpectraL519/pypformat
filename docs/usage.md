@@ -151,4 +151,25 @@ Where the `fmt_func` parameters are callables, the signatures of which match the
 <br />
 <br />
 
+<details>
+  <summary><h3 id="utility-text-styling">Text styling</h3></summary>
+
+> [!IMPORTANT]
+> `PyPformat` utilizes the [colored](https://dslackw.gitlab.io/colored/) package for text styling.
+
+Text styling in the `PyPformat` package is done via the `TextStyle` dataclass defined in the [text_style.py](/src/pformat/text_style.py) file.
+
+The members of this class are:
+
+- `value: Optional[str]` - the actual text style string, e.g. `colored.Fore.green`, `colored.Back.red`, `colored.Style.underline`, etc.
+- `mode : TextStyle.Mode`
+
+</details>
+
 <!-- TODO: text styling, indentation -->
+
+<!--
+<details>
+  <summary><h3 id="utility-...">...</h3></summary>
+</details>
+ -->
