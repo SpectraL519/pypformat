@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import sys
+from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from typing import Any, Union
 
 from .common_types import MultilineTypeFormatterFunc, NormalTypeFormatterFunc
@@ -20,17 +22,17 @@ def _is_union(t: type) -> bool:
     )
 
 
-def _has_valid_type(obj: Any, t: type, strict: bool) -> bool:
+def _has_valid_type(obj: Any, t: type, exact_match: bool) -> bool:
     if t is Any:
         return True
 
     if _is_union(t):
-        return any(_has_valid_type(obj, _t, strict) for _t in t.__args__)
+        return any(_has_valid_type(obj, _t, exact_match) for _t in t.__args__)
 
-    return type(obj) is t if strict else isinstance(obj, t)
+    return type(obj) is t if exact_match else isinstance(obj, t)
 
 
-class TypeFormatter:
+class TypeFormatter(ABC):
     def __init__(self, t: type):
         self.type = t
 
@@ -42,14 +44,15 @@ class TypeFormatter:
 
         return self.type == other.type
 
-    def __call__(self, obj: Any, depth: int = 0) -> str:
+    @abstractmethod
+    def __call__(self, obj: Any, depth: int = 0) -> str | Iterable[str]:
         raise NotImplementedError(f"{repr(self)}.__call__ is not implemented")
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.type.__name__})"
 
-    def has_valid_type(self, obj: Any, strict: bool = False) -> bool:
-        return _has_valid_type(obj, self.type, strict)
+    def has_valid_type(self, obj: Any, exact_match: bool = False) -> bool:
+        return _has_valid_type(obj, self.type, exact_match)
 
     def _check_type(self, obj: Any) -> None:
         if not isinstance(obj, self.type):
@@ -61,6 +64,10 @@ class TypeFormatter:
 class NormalFormatter(TypeFormatter):
     def __init__(self, t: type):
         super().__init__(t)
+
+    @abstractmethod
+    def __call__(self, obj: Any, depth: int = 0) -> str:
+        super().__call__(obj, depth)
 
 
 class CustomNormalFormatter(NormalFormatter):
@@ -80,6 +87,10 @@ def normal_formatter(t: type, fmt_func: NormalTypeFormatterFunc) -> CustomNormal
 class MultilineFormatter(TypeFormatter):
     def __init__(self, t: type):
         super().__init__(t)
+
+    @abstractmethod
+    def __call__(self, obj: Any, depth: int = 0) -> Iterable[str]:
+        super().__call__(obj, depth)
 
 
 class CustomMultilineFormatter(MultilineFormatter):

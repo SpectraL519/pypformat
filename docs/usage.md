@@ -3,6 +3,7 @@
 - [Baisc usage](#basic-usage)
 - [Format options](#format-options)
   - [Options overview](#options-overview)
+- Utility
 
 <br />
 <br />
