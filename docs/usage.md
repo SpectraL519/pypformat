@@ -3,7 +3,7 @@
 - [Baisc usage](#basic-usage)
 - [Format options](#format-options)
   - [Options overview](#options-overview)
-- Utility
+- [Utility](#utility)
 
 <br />
 <br />
@@ -104,3 +104,51 @@ The table below contains a brief overview of all available formatting options.
 
   Description
 </details>
+
+<br />
+<br />
+
+## Utility
+
+<details>
+  <summary><h3 id="utility-type-specific-formatters">Type specific formatters</h3></summary>
+
+The `PrettyFormatter` class cotnains an ordered collection of type specific formatters. When formatting an item, this collection is traversed and the first matching formatter is applied to the input item.
+
+The type specific formatters are instances of the `TypeFormatter` abstract class (defined in the [formatter_types.py](/src/pformat/formatter_types.py) file). The identifier of this class is its `type` member, which is then used in matching the formatted item's type in the function:
+
+```python
+has_valid_type(obj: Any, exact_match: bool = False) -> bool
+```
+
+<br />
+
+The `TypeFormatter` class is the base type used for type specific formatters and defines a common, abstract method:
+
+```python
+@abstractmethod
+__call__(self, obj: Any, depth: int = 0) -> str | Iterable[str]
+```
+
+However, the abstract classes actually used as base types for concrete formatters are:
+
+- `NormalFormatter(TypeFormatter)` - the `__call__` abstract method should return an instance of `str`,
+- `MultilineFormatter(TypeFormatter)` - the `__call__` abstract method should return an instance of `Iterable[str]`, where each element in the returned collection should be a sepparate line.
+
+With that in mind, you can use these classes to create custom formatters.
+
+Alternatively, you can create custom formatter objects using the predefined functions:
+
+```python
+normal_formatter(t: type, fmt_func: NormalTypeFormatterFunc) -> CustomNormalFormatter
+multiline_formatter(t: type, fmt_func: MultilineTypeFormatterFunc) -> CustomMultilineFormatter
+```
+
+Where the `fmt_func` parameters are callables, the signatures of which match the signatures of the `__call__` abstract methods of their corresponding base classes.
+
+</details>
+
+<br />
+<br />
+
+<!-- TODO: text styling, indentation -->
