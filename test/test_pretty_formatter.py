@@ -93,9 +93,9 @@ class TestPrettyFormatterSimple:
         collection = DummyIterable()
         expected_output = "\n".join(
             [
-                "DummyIterable(",
+                "DummyIterable([",
                 *[f"{self.indent_type.add_to(repr(item))}," for item in collection],
-                ")",
+                "])",
             ]
         )
 
@@ -405,11 +405,14 @@ class TestIterableFormatter:
     def test_get_parnens(self):
         assert IterableFormatter.get_parens(list()) == ("[", "]")
         assert IterableFormatter.get_parens(set()) == ("{", "}")
-        assert IterableFormatter.get_parens(frozenset()) == ("frozen{", "}")
+        assert IterableFormatter.get_parens(frozenset()) == ("frozenset({", "})")
         assert IterableFormatter.get_parens(tuple()) == ("(", ")")
         assert IterableFormatter.get_parens(range(3)) == ("(", ")")
         assert IterableFormatter.get_parens(deque()) == ("deque([", "])")
-        assert IterableFormatter.get_parens(DummyIterable()) == (f"{DummyIterable.__name__}(", ")")
+        assert IterableFormatter.get_parens(DummyIterable()) == (
+            f"{DummyIterable.__name__}([",
+            "])",
+        )
 
 
 class TestMappingFormatter:

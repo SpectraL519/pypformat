@@ -151,12 +151,12 @@ class IterableFormatter(MultilineFormatter):
         if isinstance(collection, set):
             return "{", "}"
         if isinstance(collection, frozenset):
-            return "frozen{", "}"
+            return "frozenset({", "})"
         if isinstance(collection, tuple) or isinstance(collection, range):
             return "(", ")"
         if isinstance(collection, deque):
             return "deque([", "])"
-        return f"{type(collection).__name__}(", ")"
+        return f"{type(collection).__name__}([", "])"
 
 
 class MappingFormatter(MultilineFormatter):
@@ -174,14 +174,16 @@ class MappingFormatter(MultilineFormatter):
     def __call__(self, mapping: Mapping, depth: int = 0) -> list[str]:
         self._check_type(mapping)
 
+        opening, closing = MappingFormatter.get_parens(mapping)
+
         if self._options.compact:
             mapping_str = (
-                "{"
+                opening
                 + ", ".join(
                     f"{self._base_formatter(key)}: {self._base_formatter(value)}"
                     for key, value in mapping.items()
                 )
-                + "}"
+                + closing
             )
             mapping_str_len = strlen_no_style(mapping_str) + self._options.indent_type.length(depth)
             if mapping_str_len <= self._options.width:
@@ -198,6 +200,19 @@ class MappingFormatter(MultilineFormatter):
             values.extend(item_values_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
+        lines_fmt = [opening, *values_fmt, closing]
         if self._options.style_entire_text:
-            return self._options.text_style.apply_to_each(["{", *values_fmt, "}"])
-        return ["{", *values_fmt, "}"]
+            return self._options.text_style.apply_to_each(lines_fmt)
+        return lines_fmt
+
+    @staticmethod
+    def get_parens(mapping: Mapping) -> tuple[str, str]:
+        if isinstance(mapping, defaultdict):
+            return f"defaultdict({mapping.default_factory}, {{", "})"
+        if isinstance(mapping, OrderedDict):
+            return "OrderedDict({", "})"
+        if isinstance(mapping, dict):
+            return "{", "}"
+        if isinstance(mapping, MappingProxyType):
+            return "mappingproxy({", "})"
+        return f"{type(mapping).__name__}({{", "})"
