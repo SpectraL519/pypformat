@@ -161,12 +161,47 @@ Text styling in the `PyPformat` package is done via the `TextStyle` dataclass de
 
 The members of this class are:
 
-- `value: Optional[str]` - the actual text style string, e.g. `colored.Fore.green`, `colored.Back.red`, `colored.Style.underline`, etc.
-- `mode : TextStyle.Mode`
+| **Name** | **Type** | **Default value** | **Description** |
+| :- | :- | :- | :- |
+| `value` | `TextStyleValue` | `None` | Represents the actual text style string, e.g.:<br/>- `colored.Fore.green`<br/>- `colored.Back.red`<br/>- `colored.Style.underline` |
+| `mode` | `TextStyle.Mode` | `Mode.preserve` | Specifies how the text style should be applied to a string when using the `apply_to` method. |
 
+> [!INFO]
+> 
+> The table below presents all available text style modes.
+> 
+> | **Name** | **Description** |
+> | :- | :- |
+> | normal | Returns `f"{Style.reset}{style}{s}{Style.reset}"` for an input string `s`. |
+> | preserve | Replaces all `Style.reset` occurances with `f"{Style.reset}{<style>}"` in the input string and then applies the style like the *normal* mode to the aligned string. |
+> | override | Removes all style modifiers from the input string and then applies the style like the *normal* mode to the aligned string. |
+
+<br />
+
+#### Additional utility
+
+##### Type definitions
+
+- `TextStyleValue` - a type alias for `Optional[str]`
+- `TextStyleParam` - a type alias for `Union[TextStyle, TextStyleValue]`
+
+<br />
+
+##### Utility methods of the `TextStyle` class
+
+- `apply_to(s: str) -> str` - returns the input string with the text style applied based on the `mode` parameter
+- `apply_to_each(s_collection: Iterable[str]) -> list[str]` - returns a new list of styled strings constructed by calling the `apply_to` method for each string in the input iterable
+- [static] `new(style: TextStyleParam = None, mode: Optional[Mode] = None) -> TextStyle` - creates a new `TextStyle` instance based on the input parameters
 </details>
 
-<!-- TODO: text styling, indentation -->
+<br />
+
+##### Utility functions
+
+- `rm_style_modifiers(s: str) -> str` - removes all ANSI escape sequences from a string
+- `strlen_no_style(s: str) -> int` - returns the length of the string after removing its style modifiers
+
+<!-- indentation -->
 
 <!--
 <details>

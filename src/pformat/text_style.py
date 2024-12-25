@@ -25,12 +25,12 @@ def _apply_style_normal(s: str, style: str) -> str:
 
 
 def _apply_style_override(s: str, style: str) -> str:
-    return f"{Style.reset}{style}{rm_style_modifiers(s)}{Style.reset}"
+    return _apply_style_normal(rm_style_modifiers(s), style)
 
 
 def _apply_style_preserve(s: str, style: str) -> str:
     s_aligned = re.sub(ANSI_ESCAPE_RESET_PATTERN, f"{Style.reset}{style}", s)
-    return f"{Style.reset}{style}{s_aligned}{Style.reset}"
+    return _apply_style_normal(s_aligned, style)
 
 
 TextStyleValue = Optional[str]
@@ -63,7 +63,7 @@ class TextStyle:
         return [self.apply_to(s) for s in s_collection]
 
     @staticmethod
-    def new(style: TextStyleParam, mode: Optional[Mode] = None) -> TextStyle:
+    def new(style: TextStyleParam = None, mode: Optional[Mode] = None) -> TextStyle:
         def _mode(
             _in: Optional[TextStyle.Mode], _default: TextStyle.Mode = TextStyle.Mode.preserve
         ) -> TextStyle.Mode:
