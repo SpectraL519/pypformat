@@ -14,6 +14,9 @@
 > [!IMPORTANT]
 > The minimum (tested) python version required to use the `PyPformat` package is **3.9**.
 
+> [!NOTE]
+> While the `PyPformat` package is already quite versatile and customizable, its development is ongoing. A detailed list of the planned features/improvements can be found in the [PyPformat - TODO](/docs/todo.md) document.
+
 <br />
 <br />
 
@@ -57,4 +60,4 @@ The [PyPformat - Dev notes](/docs/dev_notes.md) document contains the informatio
 
 ## Licence
 
-The `PyPformat` project is licenced under the [MIT Licence](https://opensource.org/license/mit/), which can be inspected in the [LICENCE](/LICENSE) file in the project's root directory.    
+The `PyPformat` project is licenced under the [MIT Licence](https://opensource.org/license/mit/), which can be inspected in the [LICENCE](/LICENSE) file in the project's root directory.
