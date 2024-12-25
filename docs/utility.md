@@ -2,7 +2,7 @@
 
 - [Type-specific formatters](#type-specific-formatters)
 - [Text styling](#text-styling)
-- [Indentation options](#indentation-options)
+- [Indentation](#indentation)
 
 <br />
 <br />
@@ -96,4 +96,84 @@ The members of this class are:
 <br />
 <br />
 
-## Indentation options
+## Indentation
+
+The indentation types/options for the `PrettyFormatter` are specified via the `IndentType` dataclass, the members of which are defined in the table below.
+
+| **Name** | **Type** | **Default value** | **Description** |
+| :- | :- | :- | :- |
+| `width` | `int` | `4` | Specifies the width of a single indentation level. |
+| `marker` | `IndentMarker` | `IndentMarker()` | Defines the character to use for indentation marking. |
+| `style` | `TextStyle` | `TextStyle()` | Defines the style to be applied to the indentation markers in the formatted output. |
+
+> [!NOTE]
+> The `IndentMarker` dataclass is defines the following members.
+> 
+> | **Name** | **Type** | **Default value** | **Description** |
+> | :- | :- | :- | :- |
+> | `character` | `str` | `" "` | The character which will be used to mark the indentation. |
+> | `fill` | `bool` | `True` | Specifies whether the `character` should fill the entire indendation marker (if `True`) or just the first character at each level/depth (if `False`) |
+
+<br />
+
+The `IndentType` class defines the following utility methods:
+
+- `length(depth: int) -> int` - returns the length of the unstyled indentation string at the given depth
+- `string(depth: int) -> str` - return the styled indentation string using for the given depth
+- `add_to(s: str, depth: int = 1) -> str` - returns the input string with a prepended, styled indentation string
+- `add_to_each(s_collection: Iterable[str], depth: int = 1) -> list[str]` - returns a new list of strings with prepended, styled indendation strings constructed by calling the `add_to` method for each string in the input iterable
+
+<br />
+
+You can create new instances of the `IndentType` class using the `new` static method:
+
+```python
+@staticmethod
+def new(
+    width: int = 4,
+    character: str = " ",
+    fill: bool = True,
+    style: TextStyleParam = None,
+) -> IndentType:
+    return IndentType(
+        width=width,
+        marker=IndentMarker(character=character, fill=fill),
+        style=style,
+    )
+```
+
+Alternatively, you can use the predefined type builder methods presented below.
+
+> [!NOTE]
+> All builder methods are *static* and their parameters have the same types and default values as the `new` method.
+
+```python
+def NONE(width):
+    return IndentType.new(width=width, style=None)
+
+def DOTS(width, style):
+    return IndentType.new(width=width, character="·", style=style)
+
+def THICK_DOTS(width, style):
+    return IndentType.new(width=width, character="•", style=style)
+
+def LINE(width, style):
+    return IndentType.new(width=width, character="|", fill=False, style=style)
+
+def BROKEN_BAR(width, style):
+    return IndentType.new(width=width, character="¦", fill=False, style=style)
+```
+
+```python
+>>> import pformat as pf
+>>> pf.IndentType.NONE().string(depth=2)
+'        '
+>>> pf.IndentType.DOTS().string(depth=2)
+'········'
+>>> pf.IndentType.THICK_DOTS().string(depth=2)
+'••••••••'
+>>> pf.IndentType.LINE().string(depth=2)
+'|   |   '
+>>> pf.IndentType.BROKEN_BAR().string(depth=2)
+'¦   ¦   '
+```

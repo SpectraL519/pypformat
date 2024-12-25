@@ -81,7 +81,7 @@ class IndentType:
     def THICK_DOTS(
         width: int = DEFAULT_INDENT_WIDTH,
         style: TextStyleParam = None,
-    ) -> "IndentType":
+    ) -> IndentType:
         return IndentType.new(
             width=width,
             character="•",
@@ -92,7 +92,7 @@ class IndentType:
     def LINE(
         width: int = DEFAULT_INDENT_WIDTH,
         style: TextStyleParam = None,
-    ) -> "IndentType":
+    ) -> IndentType:
         return IndentType.new(
             width=width,
             character="|",
@@ -104,7 +104,7 @@ class IndentType:
     def BROKEN_BAR(
         width: int = DEFAULT_INDENT_WIDTH,
         style: TextStyleParam = None,
-    ) -> "IndentType":
+    ) -> IndentType:
         return IndentType.new(
             width=width,
             character="¦",
