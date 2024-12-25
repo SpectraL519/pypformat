@@ -47,9 +47,8 @@ print(formatter(data))
 The configuration of the `PrettyFormatter` class can be customized to allow different output styling. The available options and other utility is described in detail in the [PyPformat - Usage](/docs/usage.md) document.
 
 <br />
-<br />
 
-## Dev notes
+### For developers
 
 The [PyPformat - Dev notes](/docs/dev_notes.md) document contains the information about project development, testing and formatting.
 
