@@ -104,7 +104,7 @@ The indentation types/options for the `PrettyFormatter` are specified via the `I
 | :- | :- | :- | :- |
 | `width` | `int` | `4` | Specifies the width of a single indentation level. |
 | `marker` | `IndentMarker` | `IndentMarker()` | Defines the character to use for indentation marking. |
-| `style` | `TextStyle` | `TextStyle()` | Defines the style to be applied to the indentation markers in the formatted output. |
+| `style` | [`TextStyle`](#text-styling) | `TextStyle()` | Defines the style to be applied to the indentation markers in the formatted output. |
 
 > [!NOTE]
 > The `IndentMarker` dataclass is defines the following members.
