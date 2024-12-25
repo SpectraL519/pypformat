@@ -3,6 +3,7 @@
 - [Baisc usage](#basic-usage)
 - [Format options](#format-options)
   - [Options overview](#options-overview)
+- [Examples](#examples)
 
 <br />
 
@@ -72,3 +73,19 @@ The table below contains a brief overview of all available formatting options.
 | `exact_type_matching` | `bool` | `False` | If `True`, the pretty formatter will apply the `projections` and `formatters` to items based on the `isinstance` checks.<br/>If `False`, `type(item) is <specified-type>` checks will be used. |
 | `projections` | `TypeProjectionFuncMapping`<br>(Optional) | `None` | A *type to projection function* mapping, where the specified projection functions will be applied to each item **recursively** before formatting - only if the item's type is a valid key in the mapping. |
 | `formatters` | `MutableSequence[TypeFormatter]`<br/>(Optional) | `None` | A mutable sequence of [`TypeFormatter`](/docs/utility.md#type-specific-formatters) objects, which is prepended to a list of predefined type formatters, which is iterated in order during the process of type matching while formatting data. |
+
+> [!WARNING]
+> 
+> In the current version the text style specified in the formatting options may not be applied for types formatted using custom formatters (passed through the `formatters` parameter). Therefore the style must be applied manually within the custom formatter.
+
+<br />
+<br />
+
+## Examples
+
+In the [examples](/examples/) directory, you can find short demo programs demonstating the usage of the `PyPformat` package:
+
+- `simpla_data.py` - integers, floats, strings, etc.
+- `complex_data.py` - collections, mappings, etc.
+
+The formatting configurations used in the example programs are provided in the [common.py](/examples/common.py) file.
