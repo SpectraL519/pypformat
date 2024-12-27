@@ -57,17 +57,6 @@ jobs:
           echo cov_date=$(date +'%Y-%m-%d') >> $GITHUB_ENV
           echo ### Total coverage: $TOTAL_COV% >> $GITHUB_STEP_SUMMARY
 
-      - name: Verify the coverage data
-        env:
-          MIN_COV: 90
-        run: |
-          if (( ${{ env.total_cov }} < $MIN_COV )); then
-            echo "ERROR: Coverage is below $MIN_COV% (${{ env.total_cov }}%)."
-            exit 1
-          else
-            echo "Coverage is above 90% (${{ env.total_cov }}%)."
-          fi
-
       - name: Generate the covbadge
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
@@ -79,6 +68,17 @@ jobs:
           valColorRange: ${{ env.total_cov }}
           minColorRange: 50
           maxColorRange: 90
+
+      - name: Verify the coverage data
+        env:
+          MIN_COV: 90
+        run: |
+          if (( ${{ env.total_cov }} < $MIN_COV )); then
+            echo "ERROR: Coverage is below $MIN_COV% (${{ env.total_cov }}%)."
+            exit 1
+          else
+            echo "Coverage is above 90% (${{ env.total_cov }}%)."
+          fi
 
   run_tests_simple:
     name: Run project tests (simple)
