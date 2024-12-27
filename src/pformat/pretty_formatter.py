@@ -3,11 +3,10 @@ from __future__ import annotations
 from collections import ChainMap, OrderedDict, defaultdict, deque
 from collections.abc import Iterable, Mapping
 from types import MappingProxyType
-from typing import Any, Optional, Union
+from typing import Any, MutableSequence, Optional, Union
 
 from .format_options import (
     FormatOptions,
-    TypeFormatterFuncMutSequence,
     TypeProjectionFuncMapping,
 )
 from .formatter_types import MultilineFormatter, NormalFormatter, TypeFormatter
@@ -30,14 +29,14 @@ class PrettyFormatter:
 
     @staticmethod
     def new(
+        compact: bool = FormatOptions.default("compact"),
         width: int = FormatOptions.default("width"),
-        compact: int = FormatOptions.default("compact"),
         indent_type: int = FormatOptions.default("indent_type"),
         text_style: TextStyleParam = FormatOptions.default("text_style"),
         style_entire_text: bool = FormatOptions.default("style_entire_text"),
-        strict_type_matching: bool = FormatOptions.default("strict_type_matching"),
+        exact_type_matching: bool = FormatOptions.default("exact_type_matching"),
         projections: Optional[TypeProjectionFuncMapping] = FormatOptions.default("projections"),
-        formatters: Optional[TypeFormatterFuncMutSequence] = FormatOptions.default("formatters"),
+        formatters: Optional[MutableSequence[TypeFormatter]] = FormatOptions.default("formatters"),
     ) -> PrettyFormatter:
         return PrettyFormatter(
             options=FormatOptions(
@@ -46,7 +45,7 @@ class PrettyFormatter:
                 indent_type=indent_type,
                 text_style=TextStyle.new(text_style),
                 style_entire_text=style_entire_text,
-                strict_type_matching=strict_type_matching,
+                exact_type_matching=exact_type_matching,
                 projections=projections,
                 formatters=formatters,
             )
@@ -62,7 +61,7 @@ class PrettyFormatter:
         projected_obj = self._project(obj)
 
         for formatter in self._formatters:
-            if formatter.has_valid_type(projected_obj, self._options.strict_type_matching):
+            if formatter.has_valid_type(projected_obj, self._options.exact_type_matching):
                 return self._format_with(projected_obj, formatter, depth)
 
         return self._format_with(projected_obj, self._default_formatter, depth)
@@ -112,7 +111,7 @@ class IterableFormatter(MultilineFormatter):
         self._base_formatter = base_formatter
         self._options = self._base_formatter._options
 
-        if self._options.strict_type_matching:
+        if self._options.exact_type_matching:
             super().__init__(IterableFormatter._TYPES)
         else:
             super().__init__(Iterable)
@@ -129,7 +128,7 @@ class IterableFormatter(MultilineFormatter):
             collecion_str_len = strlen_no_style(collecion_str) + self._options.indent_type.length(
                 depth
             )
-            if self._options.width is None or collecion_str_len <= self._options.width:
+            if collecion_str_len <= self._options.width:
                 if self._options.style_entire_text:
                     return [self._options.text_style.apply_to(collecion_str)]
                 return [collecion_str]
@@ -141,9 +140,11 @@ class IterableFormatter(MultilineFormatter):
             values.extend(v_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
+        lines_fmt = [opening, *values_fmt, closing]
+
         if self._options.style_entire_text:
-            return self._options.text_style.apply_to_each([opening, *values_fmt, closing])
-        return [opening, *values_fmt, closing]
+            return self._options.text_style.apply_to_each(lines_fmt)
+        return lines_fmt
 
     @staticmethod
     def get_parens(collection: Iterable) -> tuple[str, str]:
@@ -152,22 +153,22 @@ class IterableFormatter(MultilineFormatter):
         if isinstance(collection, set):
             return "{", "}"
         if isinstance(collection, frozenset):
-            return "frozen{", "}"
+            return "frozenset({", "})"
         if isinstance(collection, tuple) or isinstance(collection, range):
             return "(", ")"
         if isinstance(collection, deque):
             return "deque([", "])"
-        return f"{type(collection).__name__}(", ")"
+        return f"{type(collection).__name__}([", "])"
 
 
 class MappingFormatter(MultilineFormatter):
-    _TYPES = Union[dict, defaultdict, OrderedDict, MappingProxyType, ChainMap]
+    _TYPES = Union[dict, defaultdict, OrderedDict, ChainMap, MappingProxyType]
 
     def __init__(self, base_formatter: PrettyFormatter):
         self._base_formatter = base_formatter
         self._options = self._base_formatter._options
 
-        if self._options.strict_type_matching:
+        if self._options.exact_type_matching:
             super().__init__(MappingFormatter._TYPES)
         else:
             super().__init__(Mapping)
@@ -175,17 +176,19 @@ class MappingFormatter(MultilineFormatter):
     def __call__(self, mapping: Mapping, depth: int = 0) -> list[str]:
         self._check_type(mapping)
 
+        opening, closing = MappingFormatter.get_parens(mapping)
+
         if self._options.compact:
             mapping_str = (
-                "{"
+                opening
                 + ", ".join(
                     f"{self._base_formatter(key)}: {self._base_formatter(value)}"
                     for key, value in mapping.items()
                 )
-                + "}"
+                + closing
             )
             mapping_str_len = strlen_no_style(mapping_str) + self._options.indent_type.length(depth)
-            if self._options.width is None or mapping_str_len <= self._options.width:
+            if mapping_str_len <= self._options.width:
                 if self._options.style_entire_text:
                     return [self._options.text_style.apply_to(mapping_str)]
                 return [mapping_str]
@@ -199,6 +202,20 @@ class MappingFormatter(MultilineFormatter):
             values.extend(item_values_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
+        lines_fmt = [opening, *values_fmt, closing]
+
         if self._options.style_entire_text:
-            return self._options.text_style.apply_to_each(["{", *values_fmt, "}"])
-        return ["{", *values_fmt, "}"]
+            return self._options.text_style.apply_to_each(lines_fmt)
+        return lines_fmt
+
+    @staticmethod
+    def get_parens(mapping: Mapping) -> tuple[str, str]:
+        if isinstance(mapping, defaultdict):
+            return f"defaultdict({mapping.default_factory}, {{", "})"
+        if isinstance(mapping, OrderedDict):
+            return "OrderedDict({", "})"
+        if isinstance(mapping, dict):
+            return "{", "}"
+        if isinstance(mapping, MappingProxyType):
+            return "mappingproxy({", "})"
+        return f"{type(mapping).__name__}({{", "})"

@@ -1,0 +1,70 @@
+name: coverage
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - synchronize
+    paths:
+      - .github/workflows/tests.yaml
+      - src/**
+      - test/**
+      - pyproject.toml
+      - tox.ini
+
+
+jobs:
+  run_tests_coverage:
+    name: Run project tests (coverage)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.9
+            3.10
+            3.11
+            3.12
+            3.13
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: python -m pip install tox
+
+      - name: Run tox
+        run: tox
+
+      - name: Prepare the coverage data
+        run: |
+          export TOTAL_COV=$(python -c "import json; print(json.load(open('.coverage.json'))['totals']['percent_covered_display'])")
+          echo total_cov=$TOTAL_COV >> $GITHUB_ENV
+          echo cov_date=$(date +'%Y-%m-%d') >> $GITHUB_ENV
+          echo ### Total coverage: $TOTAL_COV% >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate the covbadge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_TOKEN }}
+          gistID: 60ba7283e412ea91cd2db2b3b649003d
+          label: coverage
+          filename: pypf_covbadge.json
+          message: ${{ env.total_cov }}% (${{ env.cov_date }})
+          valColorRange: ${{ env.total_cov }}
+          minColorRange: 50
+          maxColorRange: 90
+
+      - name: Verify the coverage data
+        env:
+          MIN_COV: 90
+        run: |
+          if (( ${{ env.total_cov }} < $MIN_COV )); then
+            echo "ERROR: Coverage is below $MIN_COV% (${{ env.total_cov }}%)."
+            exit 1
+          else
+            echo "Coverage is above 90% (${{ env.total_cov }}%)."
+          fi

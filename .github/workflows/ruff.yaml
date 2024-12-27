@@ -7,7 +7,14 @@ on:
       - .github/workflows/ruff.yaml
       - src/**
       - test/**
+      - examples/**
       - ruff.toml
+
+  pull_request:
+    branches:
+      - '*'
+    types:
+      - opened
 
 jobs:
   ruff:
@@ -19,7 +26,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: 3.12
 
       - name: Install dependencies
         run: |

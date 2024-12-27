@@ -1,21 +1,22 @@
 from dataclasses import MISSING, asdict, dataclass, field, fields
-from typing import Any, Optional
+from typing import Any, MutableSequence, Optional
 
-from .common_types import TypeFormatterFuncMutSequence, TypeProjectionFuncMapping
+from .common_types import TypeProjectionFuncMapping
+from .formatter_types import TypeFormatter
 from .indentation_utility import IndentType
 from .text_style import TextStyle
 
 
 @dataclass
 class FormatOptions:
-    width: Optional[int] = 80
     compact: bool = False
+    width: int = 50
     indent_type: IndentType = field(default_factory=lambda: IndentType.NONE())
     text_style: TextStyle = field(default_factory=TextStyle)
     style_entire_text: bool = False
-    strict_type_matching: bool = False
+    exact_type_matching: bool = False
     projections: Optional[TypeProjectionFuncMapping] = None
-    formatters: Optional[TypeFormatterFuncMutSequence] = None
+    formatters: Optional[MutableSequence[TypeFormatter]] = None
 
     def __post_init__(self):
         if not isinstance(self.text_style, TextStyle):

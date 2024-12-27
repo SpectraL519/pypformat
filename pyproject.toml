@@ -5,18 +5,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pypformat"
-version = "0.8"
+version = "1.0.0"
 description = "Python pretty formatting package"
 authors = [
   {name = "SpectraL519"}
 ]
-readme = {file = "README.md", content-type = "text/markdown; charset=UTF-8; variant=GFM"}
+readme = {file = "README_pypi.md", content-type = "text/markdown; charset=UTF-8; variant=GFM"}
 license = {file = "LICENSE"}
 requires-python = ">= 3.9"
-dependencies = ["colored==2.2.4"]
+dependencies = ["colored==2.2.*"]
 keywords = ["pretty", "formatting", "format", "print"]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 5 - Production/Stable",
 
   "Intended Audience :: Developers",
   "Topic :: Software Development :: Libraries :: Python Modules",
@@ -31,8 +31,10 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 
+
 [project.optional-dependencies]
 dev = ["pytest", "tox", "ruff", "icecream"]
+
 
 [project.urls]
 Repository = "https://github.com/SpectraL519/pypformat.git"
@@ -46,4 +48,3 @@ include = ["pformat"]
 [tool.pytest.ini_options]
 testpaths = ["test"]
 pythonpath = ["src"]
-addopts = "--ignore=test/test_dummy.py"

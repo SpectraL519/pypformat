@@ -1,6 +1,7 @@
-from collections import deque
+from collections import ChainMap, OrderedDict, defaultdict, deque
 from collections.abc import Iterable, Mapping
 from itertools import product
+from types import MappingProxyType
 
 import pytest
 from colored import Back, Fore, Style
@@ -32,10 +33,6 @@ class TestPrettyFormatterInitialization:
         assert sut_new._options == custom_options
 
 
-def gen_mapping(data: Iterable) -> dict:
-    return {f"key{i}": value for i, value in enumerate(data)}
-
-
 SIMPLE_DATA = [123, 3.14, "string", b"bytes", bytearray([1, 2, 3])]
 SIMPLE_HASHABLE_DATA = [data for data in SIMPLE_DATA if data.__hash__ is not None]
 INDENT_WIDTH_VALS = [2, 4]
@@ -43,19 +40,20 @@ INDENT_TYPE_VALS = [
     gen(width=w)
     for gen, w in product([IndentType.NONE, IndentType.DOTS, IndentType.LINE], INDENT_WIDTH_VALS)
 ]
-RECOGNIZABLE_ITERABLE_TYPES = [list, set, frozenset, tuple, deque]
-RECOGNIZABLE_NHASH_ITERABLE_TYPES = [list, tuple, deque]
+RECOGNIZED_ITERABLE_TYPES = [list, set, frozenset, tuple, deque]
+RECOGNIZED_NHASH_ITERABLE_TYPES = [list, tuple, deque]
+RECOGNIZED_MAPPING_TYPES = [dict, defaultdict, OrderedDict, ChainMap, MappingProxyType]
+
+INT_UNBOUND = 10e9
+NESTED_MAPPING_KEY = "nested_elem"
 
 
-class DummyIterable:
-    def __init__(self, nested: bool = False):
-        if nested:
-            self.data = [*SIMPLE_HASHABLE_DATA, DummyIterable()]
-        else:
-            self.data = SIMPLE_HASHABLE_DATA
+def gen_mapping(data: Iterable, t: type = dict, nested: bool = False) -> Mapping:
+    mapping_data = {f"key{i}": value for i, value in enumerate(data)}
+    if nested:
+        mapping_data[NESTED_MAPPING_KEY] = gen_mapping(data, t, nested=False)
 
-    def __iter__(self):
-        yield from self.data
+    return t(str, mapping_data) if issubclass(t, defaultdict) else t(mapping_data)
 
 
 class TestPrettyFormatterSimple:
@@ -71,7 +69,7 @@ class TestPrettyFormatterSimple:
         assert sut(element) == repr(element)
         assert sut.format(element) == repr(element)
 
-    @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_ITERABLE_TYPES)
+    @pytest.mark.parametrize("iterable_type", RECOGNIZED_ITERABLE_TYPES)
     def test_format_iterable(self, sut: PrettyFormatter, iterable_type: type):
         collection = iterable_type(SIMPLE_HASHABLE_DATA)
         opening, closing = IterableFormatter.get_parens(collection)
@@ -87,26 +85,15 @@ class TestPrettyFormatterSimple:
         assert sut(collection) == expected_output
         assert sut.format(collection) == expected_output
 
-    def test_format_unrecognized_iterable(self, sut):
-        collection = DummyIterable()
-        expected_output = "\n".join(
-            [
-                "DummyIterable(",
-                *[f"{self.indent_type.add_to(repr(item))}," for item in collection],
-                ")",
-            ]
-        )
-
-        assert sut(collection) == expected_output
-        assert sut.format(collection) == expected_output
-
-    def test_format_mapping(self, sut):
-        mapping = gen_mapping(SIMPLE_DATA)
+    @pytest.mark.parametrize("mapping_type", RECOGNIZED_MAPPING_TYPES)
+    def test_format_mapping(self, sut: PrettyFormatter, mapping_type: type):
+        mapping = gen_mapping(SIMPLE_DATA, t=mapping_type)
+        opening, closing = MappingFormatter.get_parens(mapping)
 
         expected_output = list()
         for key, value in mapping.items():
             expected_output.append(self.indent_type.add_to(f"{repr(key)}: {repr(value)},"))
-        expected_output = "\n".join(["{", *expected_output, "}"])
+        expected_output = "\n".join([opening, *expected_output, closing])
 
         assert sut(mapping) == expected_output
         assert sut.format(mapping) == expected_output
@@ -118,10 +105,9 @@ class TestPrettyFormatterForNestedStructures:
         self.indent_type = request.param
         return PrettyFormatter.new(indent_type=self.indent_type)
 
-    @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_NHASH_ITERABLE_TYPES)
+    @pytest.mark.parametrize("iterable_type", RECOGNIZED_NHASH_ITERABLE_TYPES)
     def test_format_nested_iterable(self, sut: PrettyFormatter, iterable_type: type):
         collection = iterable_type([*SIMPLE_DATA, iterable_type(SIMPLE_DATA)])
-
         opening, closing = IterableFormatter.get_parens(collection)
 
         expected_output = [f"{self.indent_type.add_to(repr(item))}," for item in SIMPLE_DATA]
@@ -137,32 +123,10 @@ class TestPrettyFormatterForNestedStructures:
         assert sut(collection) == expected_output
         assert sut.format(collection) == expected_output
 
-    def test_format_nested_unrecognized_iterable(self, sut):
-        collection = DummyIterable(nested=True)
-        opening, closing = IterableFormatter.get_parens(collection)
-
-        expected_output = [
-            f"{self.indent_type.add_to(repr(item))}," for item in SIMPLE_HASHABLE_DATA
-        ]
-        expected_output.extend(
-            [
-                self.indent_type.add_to(opening),
-                *[
-                    f"{self.indent_type.add_to(repr(item), depth=2)},"
-                    for item in SIMPLE_HASHABLE_DATA
-                ],
-                self.indent_type.add_to(f"{closing},"),
-            ]
-        )
-        expected_output = "\n".join([opening, *expected_output, closing])
-
-        assert sut(collection) == expected_output
-        assert sut.format(collection) == expected_output
-
-    def test_format_nested_mapping(self, sut):
-        mapping = gen_mapping(SIMPLE_DATA)
-        nested_key = "nested"
-        mapping[nested_key] = gen_mapping(SIMPLE_DATA)
+    @pytest.mark.parametrize("mapping_type", RECOGNIZED_MAPPING_TYPES)
+    def test_format_nested_mapping(self, sut: PrettyFormatter, mapping_type: type):
+        mapping = gen_mapping(SIMPLE_DATA, t=mapping_type, nested=True)
+        opening, closing = MappingFormatter.get_parens(mapping)
 
         expected_simple_mapping_output = list()
         for key, value in gen_mapping(SIMPLE_DATA).items():
@@ -171,16 +135,16 @@ class TestPrettyFormatterForNestedStructures:
             )
 
         expected_nested_mapping_output = [
-            f"{repr(nested_key)}: {{",
+            f"{repr(NESTED_MAPPING_KEY)}: {opening}",
             *expected_simple_mapping_output,
-            "},",
+            f"{closing},",
         ]
         expected_output = "\n".join(
             [
-                "{",
+                opening,
                 *expected_simple_mapping_output,
                 *self.indent_type.add_to_each(expected_nested_mapping_output),
-                "}",
+                closing,
             ]
         )
 
@@ -193,13 +157,12 @@ class TestPrettyFormatterCompact:
     def sut(self) -> PrettyFormatter:
         return PrettyFormatter.new(
             compact=True,
-            width=None,
+            width=INT_UNBOUND,
         )
 
-    @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_ITERABLE_TYPES)
+    @pytest.mark.parametrize("iterable_type", RECOGNIZED_ITERABLE_TYPES)
     def test_format_iterable(self, sut: PrettyFormatter, iterable_type: type):
         collection = iterable_type(SIMPLE_HASHABLE_DATA)
-
         opening, closing = IterableFormatter.get_parens(collection)
 
         expected_output = opening + ", ".join(repr(value) for value in collection) + closing
@@ -207,19 +170,15 @@ class TestPrettyFormatterCompact:
         assert sut(collection) == expected_output
         assert sut.format(collection) == expected_output
 
-    def test_format_unrecognized_iterable(self, sut: PrettyFormatter):
-        collection = DummyIterable()
-        opening, closing = IterableFormatter.get_parens(collection)
+    @pytest.mark.parametrize("mapping_type", RECOGNIZED_MAPPING_TYPES)
+    def test_format_mapping(self, sut: PrettyFormatter, mapping_type: type):
+        mapping = gen_mapping(SIMPLE_DATA, t=mapping_type)
+        opening, closing = MappingFormatter.get_parens(mapping)
 
-        expected_output = opening + ", ".join(repr(value) for value in collection) + closing
-
-        assert sut(collection) == expected_output
-        assert sut.format(collection) == expected_output
-
-    def test_format_mapping(self, sut: PrettyFormatter):
-        mapping = gen_mapping(SIMPLE_DATA)
         expected_output = (
-            "{" + ", ".join(f"{repr(key)}: {repr(value)}" for key, value in mapping.items()) + "}"
+            opening
+            + ", ".join(f"{repr(key)}: {repr(value)}" for key, value in mapping.items())
+            + closing
         )
 
         assert sut(mapping) == expected_output
@@ -235,19 +194,9 @@ class TestPrettyFormatterCompactForNestedIterableTypes:
             width=60,
         )
 
-    @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_NHASH_ITERABLE_TYPES)
+    @pytest.mark.parametrize("iterable_type", RECOGNIZED_NHASH_ITERABLE_TYPES)
     def test_format_nested_iterable(self, sut: PrettyFormatter, iterable_type: type):
         collection = iterable_type([*SIMPLE_HASHABLE_DATA, iterable_type(SIMPLE_HASHABLE_DATA)])
-        opening, closing = IterableFormatter.get_parens(collection)
-
-        expected_output = [f"{self.indent_type.add_to(sut(item))}," for item in collection]
-        expected_output = "\n".join([opening, *expected_output, closing])
-
-        assert sut(collection) == expected_output
-        assert sut.format(collection) == expected_output
-
-    def test_format_nested_unrecognized_iterable(self, sut):
-        collection = DummyIterable(nested=True)
         opening, closing = IterableFormatter.get_parens(collection)
 
         expected_output = [f"{self.indent_type.add_to(sut(item))}," for item in collection]
@@ -263,17 +212,18 @@ class TestPrettyFormatterCompactForNestedMappingTypes:
         self.indent_type = FormatOptions.default("indent_type")
         return PrettyFormatter.new(
             compact=True,
-            width=80,
+            width=100,
         )
 
-    def test_format_nested_mapping(self, sut):
-        mapping = gen_mapping(SIMPLE_HASHABLE_DATA)
-        mapping["nested"] = gen_mapping(SIMPLE_HASHABLE_DATA)
+    @pytest.mark.parametrize("mapping_type", RECOGNIZED_MAPPING_TYPES)
+    def test_format_nested_mapping(self, sut: PrettyFormatter, mapping_type: type):
+        mapping = gen_mapping(SIMPLE_HASHABLE_DATA, t=mapping_type, nested=True)
+        opening, closing = MappingFormatter.get_parens(mapping)
 
         expected_output = list()
         for key, value in mapping.items():
             expected_output.append(self.indent_type.add_to(f"{sut(key)}: {sut(value)},"))
-        expected_output = "\n".join(["{", *expected_output, "}"])
+        expected_output = "\n".join([opening, *expected_output, closing])
 
         assert sut(mapping) == expected_output
         assert sut.format(mapping) == expected_output
@@ -292,7 +242,7 @@ class TestPrettyFormatterStyleEntireText:
         compact, style, mode = request.param
         self.text_style = TextStyle(style, mode)
         return PrettyFormatter.new(
-            compact=compact, text_style=self.text_style, style_entire_text=True
+            compact=compact, width=INT_UNBOUND, text_style=self.text_style, style_entire_text=True
         )
 
     def _is_str_styled(self, s: str) -> bool:
@@ -301,7 +251,7 @@ class TestPrettyFormatterStyleEntireText:
     def test_is_output_styled_simple(self, sut: PrettyFormatter):
         assert all(self._is_str_styled(sut(item)) for item in SIMPLE_DATA)
 
-    @pytest.mark.parametrize("iterable_type", RECOGNIZABLE_NHASH_ITERABLE_TYPES)
+    @pytest.mark.parametrize("iterable_type", RECOGNIZED_NHASH_ITERABLE_TYPES)
     def test_is_output_styled_nested_iterable(self, sut: PrettyFormatter, iterable_type: type):
         collection = iterable_type([*SIMPLE_HASHABLE_DATA, iterable_type(SIMPLE_HASHABLE_DATA)])
 
@@ -310,9 +260,9 @@ class TestPrettyFormatterStyleEntireText:
 
         assert all(self._is_str_styled(line) for line in formatted_lines)
 
-    def test_is_output_styled_nested_mapping(self, sut: PrettyFormatter):
-        mapping = gen_mapping(SIMPLE_HASHABLE_DATA)
-        mapping["nested"] = gen_mapping(SIMPLE_HASHABLE_DATA)
+    @pytest.mark.parametrize("mapping_type", RECOGNIZED_MAPPING_TYPES)
+    def test_is_output_styled_nested_mapping(self, sut: PrettyFormatter, mapping_type: type):
+        mapping = gen_mapping(SIMPLE_HASHABLE_DATA, t=mapping_type, nested=True)
 
         formatted = sut(mapping)
         formatted_lines = formatted.split("\n")
@@ -327,7 +277,7 @@ class TestPrettyFormatterProjections:
 
         sut = PrettyFormatter.new(
             compact=True,
-            width=None,
+            width=INT_UNBOUND,
             projections={
                 float: float_proj,
                 str: str_proj,
@@ -395,7 +345,7 @@ class TestIterableFormatter:
         assert sut.type is Iterable
 
     def test_init_with_strict_type_matching(self):
-        fmt = PrettyFormatter.new(strict_type_matching=True)
+        fmt = PrettyFormatter.new(exact_type_matching=True)
         sut = IterableFormatter(fmt)
 
         assert sut.type is IterableFormatter._TYPES
@@ -403,11 +353,18 @@ class TestIterableFormatter:
     def test_get_parnens(self):
         assert IterableFormatter.get_parens(list()) == ("[", "]")
         assert IterableFormatter.get_parens(set()) == ("{", "}")
-        assert IterableFormatter.get_parens(frozenset()) == ("frozen{", "}")
+        assert IterableFormatter.get_parens(frozenset()) == ("frozenset({", "})")
         assert IterableFormatter.get_parens(tuple()) == ("(", ")")
         assert IterableFormatter.get_parens(range(3)) == ("(", ")")
         assert IterableFormatter.get_parens(deque()) == ("deque([", "])")
-        assert IterableFormatter.get_parens(DummyIterable()) == (f"{DummyIterable.__name__}(", ")")
+
+        class DummyIterable:
+            pass
+
+        assert IterableFormatter.get_parens(DummyIterable()) == (
+            f"{DummyIterable.__name__}([",
+            "])",
+        )
 
 
 class TestMappingFormatter:
@@ -418,7 +375,24 @@ class TestMappingFormatter:
         assert sut.type is Mapping
 
     def test_init_with_strict_type_matching(self):
-        fmt = PrettyFormatter.new(strict_type_matching=True)
+        fmt = PrettyFormatter.new(exact_type_matching=True)
         sut = MappingFormatter(fmt)
 
         assert sut.type is MappingFormatter._TYPES
+
+    @pytest.mark.parametrize("default_factory", [int, str, lambda: list(), None])
+    def test_get_parens_defaultdict(self, default_factory):
+        assert MappingFormatter.get_parens(defaultdict(default_factory)) == (
+            f"defaultdict({default_factory}, {{",
+            "})",
+        )
+
+    def test_get_parens(self):
+        assert MappingFormatter.get_parens(dict()) == ("{", "}")
+        assert MappingFormatter.get_parens(OrderedDict()) == ("OrderedDict({", "})")
+        assert MappingFormatter.get_parens(MappingProxyType({})) == ("mappingproxy({", "})")
+
+        class DummyMapping:
+            pass
+
+        assert MappingFormatter.get_parens(DummyMapping()) == (f"{DummyMapping.__name__}({{", "})")

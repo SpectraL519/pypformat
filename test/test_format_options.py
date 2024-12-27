@@ -6,12 +6,12 @@ from pformat.text_style import TextStyle
 
 
 def test_default():
-    assert FormatOptions.default("width") == 80
     assert FormatOptions.default("compact") == False
+    assert FormatOptions.default("width") == 50
     assert FormatOptions.default("indent_type") == IndentType.NONE()
     assert FormatOptions.default("text_style") == TextStyle()
     assert FormatOptions.default("style_entire_text") == False
-    assert FormatOptions.default("strict_type_matching") == False
+    assert FormatOptions.default("exact_type_matching") == False
     assert FormatOptions.default("projections") is None
     assert FormatOptions.default("formatters") is None
 

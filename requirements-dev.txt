@@ -3,3 +3,5 @@ pytest
 ruff
 tox
 icecream
+build
+twine
