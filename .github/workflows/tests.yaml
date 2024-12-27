@@ -61,14 +61,11 @@ jobs:
         env:
           MIN_COV: 90
         run: |
-          export TOTAL_COV=${{ env.total_cov }}
-          echo "TOTAL_COV is: $TOTAL_COV"
-          echo "MIN_COV is: $MIN_COV"
-          if (( $TOTAL_COV < $MIN_COV )); then
-            echo "ERROR: Coverage is below $MIN_COV% ($TOTAL_COV%)."
+          if (( ${{ env.total_cov }} < $MIN_COV )); then
+            echo "ERROR: Coverage is below $MIN_COV% (${{ env.total_cov }}%)."
             exit 1
           else
-            echo "Coverage is above 90% ($TOTAL_COV%)."
+            echo "Coverage is above 90% (${{ env.total_cov }}%)."
           fi
 
       - name: Generate the covbadge
@@ -78,7 +75,7 @@ jobs:
           gistID: 60ba7283e412ea91cd2db2b3b649003d
           label: coverage
           filename: pypf_covbadge.json
-          message: ${{ env.total_cov }} (${{ env.cov_date }})%
+          message: ${{ env.total_cov }}% (${{ env.cov_date }})
           valColorRange: ${{ env.total_cov }}
           minColorRange: 50
           maxColorRange: 90
