@@ -54,17 +54,21 @@ jobs:
         run: |
           export TOTAL_COV=$(python -c "import json; print(json.load(open('.coverage.json'))['totals']['percent_covered_display'])")
           echo total_cov=$TOTAL_COV >> $GITHUB_ENV
-          echo ### Total coverage: ${TOTAL_COV}% >> $GITHUB_STEP_SUMMARY
+          echo cov_date=$(date +'%Y-%m-%d') >> $GITHUB_ENV
+          echo ### Total coverage: $TOTAL_COV% >> $GITHUB_STEP_SUMMARY
 
       - name: Verify the coverage data
         env:
           MIN_COV: 90
         run: |
-          if (( $(echo "$TOTAL_COV < $MIN_COV" | bc -l) )); then
-            echo "ERROR: Coverage is below ${MIN_COV}% (${TOTAL_COV}%)."
+          export TOTAL_COV=${{ env.total_cov }}
+          echo "TOTAL_COV is: $TOTAL_COV"
+          echo "MIN_COV is: $MIN_COV"
+          if (( $TOTAL_COV < $MIN_COV )); then
+            echo "ERROR: Coverage is below $MIN_COV% ($TOTAL_COV%)."
             exit 1
           else
-            echo "Coverage is above 90% (${TOTAL_COV}%)."
+            echo "Coverage is above 90% ($TOTAL_COV%)."
           fi
 
       - name: Generate the covbadge
@@ -74,7 +78,7 @@ jobs:
           gistID: 60ba7283e412ea91cd2db2b3b649003d
           label: coverage
           filename: pypf_covbadge.json
-          message: ${{ env.total_cov }}%
+          message: ${{ env.total_cov }} (${{ env.cov_date }})%
           valColorRange: ${{ env.total_cov }}
           minColorRange: 50
           maxColorRange: 90

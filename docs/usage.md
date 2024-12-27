@@ -10,7 +10,6 @@
 Related pages:
 
 - [PyPformat - Utility](/docs/utility.md)
-<!-- TODO: examples page -->
 
 <br />
 <br />
@@ -75,7 +74,7 @@ The table below contains a brief overview of all available formatting options.
 | `formatters` | `MutableSequence[TypeFormatter]`<br/>(Optional) | `None` | A mutable sequence of [`TypeFormatter`](/docs/utility.md#type-specific-formatters) objects, which is prepended to a list of predefined type formatters, which is iterated in order during the process of type matching while formatting data. |
 
 > [!WARNING]
-> 
+>
 > In the current version the text style specified in the formatting options may not be applied for types formatted using custom formatters (passed through the `formatters` parameter). Therefore the style must be applied manually within the custom formatter.
 
 <br />

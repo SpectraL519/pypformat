@@ -9,6 +9,12 @@ on:
       - examples/**
       - pyproject.toml
 
+  pull_request:
+    branches:
+      - '*'
+    types:
+      - opened
+
 jobs:
   run_examples:
     name: Run the project examples
