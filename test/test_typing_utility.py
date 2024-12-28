@@ -89,10 +89,17 @@ class TestTypeCmp:
     def test_cmp_with_same_types(self, set_type):
         assert type_cmp(self.type, self.type) == Ordering.EQ
 
-    def test_cmp_with_both_any(self):
+    def test_cmp_with_object_and_any_combinations(self):
+        assert type_cmp(object, object) == Ordering.EQ
         assert type_cmp(Any, Any) == Ordering.EQ
 
-    def test_cmp_with_any(self, set_type):
+        assert type_cmp(object, Any) == Ordering.EQ
+        assert type_cmp(Any, object) == Ordering.EQ
+
+    def test_cmp_with_any_or_object(self, set_type):
+        assert type_cmp(self.type, object) == Ordering.LT
+        assert type_cmp(object, self.type) == Ordering.GT
+
         assert type_cmp(self.type, Any) == Ordering.LT
         assert type_cmp(Any, self.type) == Ordering.GT
 

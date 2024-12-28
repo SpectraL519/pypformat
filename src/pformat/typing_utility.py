@@ -36,7 +36,19 @@ class Ordering:
     GT: int = 1
 
 
+BASE_TYPES = (object, Any)
+
+
 def _is_subclass(t1: type, t2: type) -> bool:
+    if t2 in BASE_TYPES:
+        return True
+
+    if t1 in BASE_TYPES:
+        return False
+
+    if is_union(t1):
+        return False
+
     if is_union(t2):
         return any(issubclass(t1, t) for t in t2.__args__)
 
@@ -47,10 +59,13 @@ def type_cmp(t1: type, t2: type) -> int:
     if t1 is t2:
         return Ordering.EQ
 
-    if t1 is Any:
-        return Ordering.GT
-    if t2 is Any:
+    if t1 in BASE_TYPES and t2 in BASE_TYPES:
+        return Ordering.EQ
+
+    if _is_subclass(t1, t2):
         return Ordering.LT
+    if _is_subclass(t2, t1):
+        return Ordering.GT
 
     if is_union(t1) and is_union(t2):
         return Ordering.EQ
@@ -59,10 +74,5 @@ def type_cmp(t1: type, t2: type) -> int:
         return Ordering.GT if _is_subclass(t2, t1) else Ordering.EQ
     if is_union(t2):
         return Ordering.LT if _is_subclass(t1, t2) else Ordering.EQ
-
-    if _is_subclass(t1, t2):
-        return Ordering.LT
-    if _is_subclass(t2, t1):
-        return Ordering.GT
 
     return Ordering.EQ
