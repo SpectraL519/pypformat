@@ -11,7 +11,7 @@
 
 The `PrettyFormatter` class cotnains an ordered collection of type specific formatters. When formatting an item, this collection is traversed and the first matching formatter is applied to the input item.
 
-The type specific formatters are instances of the `TypeFormatter` abstract class (defined in the [formatter_types.py](/src/pformat/formatter_types.py) file). The identifier of this class is its `type` member, which is then used in matching the formatted item's type in the function:
+The type specific formatters are instances of the `TypeFormatter` abstract class (defined in the [type_specific_formatters.py](/src/pformat/type_specific_formatters.py) file). The identifier of this class is its `type` member, which is then used in matching the formatted item's type in the function:
 
 ```python
 has_valid_type(obj: Any, exact_match: bool = False) -> bool
@@ -60,9 +60,9 @@ The members of this class are:
 | `mode` | `TextStyle.Mode` | `Mode.preserve` | Specifies how the text style should be applied to a string when using the `apply_to` method. |
 
 > [!NOTE]
-> 
+>
 > The table below presents all available text style modes.
-> 
+>
 > | **Name** | **Description** |
 > | :- | :- |
 > | normal | Returns `f"{Style.reset}{style}{s}{Style.reset}"` for an input string `s`. |
@@ -108,7 +108,7 @@ The indentation types/options for the `PrettyFormatter` are specified via the `I
 
 > [!NOTE]
 > The `IndentMarker` dataclass is defines the following members.
-> 
+>
 > | **Name** | **Type** | **Default value** | **Description** |
 > | :- | :- | :- | :- |
 > | `character` | `str` | `" "` | The character which will be used to mark the indentation. |

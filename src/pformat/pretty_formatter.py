@@ -10,8 +10,8 @@ from .format_options import (
     FormatOptions,
     TypeProjectionFuncMapping,
 )
-from .formatter_types import MultilineFormatter, NormalFormatter, TypeFormatter
 from .text_style import TextStyle, TextStyleParam, strlen_no_style
+from .type_specific_formatters import MultilineFormatter, NormalFormatter, TypeFormatter
 
 
 class PrettyFormatter:
@@ -79,6 +79,7 @@ class PrettyFormatter:
             return obj
 
         for t, projection in self._options.projections.items():
+            # TODO: use has_valid_type after YT-PYPF-22
             if isinstance(obj, t):
                 return projection(obj)
 
