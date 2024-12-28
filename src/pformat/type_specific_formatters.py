@@ -1,35 +1,11 @@
 from __future__ import annotations
 
-import sys
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import Any, Union
+from typing import Any
 
 from .common_types import MultilineTypeFormatterFunc, NormalTypeFormatterFunc
-
-if sys.version_info >= (3, 10):
-    import types
-
-    union_type = types.UnionType
-else:
-    union_type = None
-
-
-def _is_union(t: type) -> bool:
-    return (
-        (union_type is not None and isinstance(t, union_type))  # `|` union (Python 3.10+)
-        or (hasattr(t, "__origin__") and t.__origin__ is Union)  # typing.Union
-    )
-
-
-def _has_valid_type(obj: Any, t: type, exact_match: bool) -> bool:
-    if t is Any:
-        return True
-
-    if _is_union(t):
-        return any(_has_valid_type(obj, _t, exact_match) for _t in t.__args__)
-
-    return type(obj) is t if exact_match else isinstance(obj, t)
+from .typing_utility import has_valid_type, type_cmp
 
 
 class TypeFormatter(ABC):
@@ -52,13 +28,17 @@ class TypeFormatter(ABC):
         return f"{self.__class__.__name__}({self.type.__name__})"
 
     def has_valid_type(self, obj: Any, exact_match: bool = False) -> bool:
-        return _has_valid_type(obj, self.type, exact_match)
+        return has_valid_type(obj, self.type, exact_match)
 
     def _check_type(self, obj: Any) -> None:
         if not isinstance(obj, self.type):
             raise TypeError(
                 f"[{repr(self)}] Cannot format an object of type `{type(obj).__name__}` - `{str(obj)}`"
             )
+
+    @staticmethod
+    def cmp(fmt1: TypeFormatter, fmt2: TypeFormatter) -> int:
+        return type_cmp(fmt1.type, fmt2.type)
 
 
 class NormalFormatter(TypeFormatter):

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import ChainMap, OrderedDict, defaultdict, deque
 from collections.abc import Iterable, Mapping
+from functools import cmp_to_key
 from types import MappingProxyType
 from typing import Any, MutableSequence, Optional, Union
 
@@ -9,8 +10,8 @@ from .format_options import (
     FormatOptions,
     TypeProjectionFuncMapping,
 )
-from .formatter_types import MultilineFormatter, NormalFormatter, TypeFormatter
 from .text_style import TextStyle, TextStyleParam, strlen_no_style
+from .type_specific_formatters import MultilineFormatter, NormalFormatter, TypeFormatter
 
 
 class PrettyFormatter:
@@ -25,6 +26,7 @@ class PrettyFormatter:
             if formatter not in self._formatters:
                 self._formatters.append(formatter)
 
+        self._formatters = sorted(self._formatters, key=cmp_to_key(TypeFormatter.cmp))
         self._default_formatter = DefaultFormatter(text_style=self._options.text_style)
 
     @staticmethod
@@ -77,6 +79,7 @@ class PrettyFormatter:
             return obj
 
         for t, projection in self._options.projections.items():
+            # TODO: use has_valid_type after YT-PYPF-22
             if isinstance(obj, t):
                 return projection(obj)
 
