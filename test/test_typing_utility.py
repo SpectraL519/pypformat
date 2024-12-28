@@ -1,4 +1,5 @@
 import sys
+from functools import cmp_to_key
 from typing import Any, Union
 
 import pytest
@@ -134,3 +135,20 @@ class TestTypeCmp:
 
     def test_cmp_with_different_types(self, set_type):
         assert type_cmp(DummyType1, DummyType2) == Ordering.EQ
+
+    def test_sort_types(self):
+        DummyType1Derived = gen_derived_type(DummyType1)
+        DummyType2Derived = gen_derived_type(DummyType2)
+        DummyTypeUnion = (
+            DummyType1 | DummyType2
+            if sys.version_info >= (3, 10)
+            else Union[DummyType1, DummyType2]
+        )
+
+        types = [DummyTypeUnion, DummyType1Derived, DummyType2Derived, DummyType1, DummyType2]
+        sorted_types = list(sorted(types, key=cmp_to_key(type_cmp)))
+
+        assert sorted_types.index(DummyType1Derived) < sorted_types.index(DummyType1)
+        assert sorted_types.index(DummyType2Derived) < sorted_types.index(DummyType2)
+
+        assert sorted_types[-1] is DummyTypeUnion

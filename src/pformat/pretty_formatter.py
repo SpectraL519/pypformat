@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import ChainMap, OrderedDict, defaultdict, deque
 from collections.abc import Iterable, Mapping
+from functools import cmp_to_key
 from types import MappingProxyType
 from typing import Any, MutableSequence, Optional, Union
 
@@ -25,6 +26,7 @@ class PrettyFormatter:
             if formatter not in self._formatters:
                 self._formatters.append(formatter)
 
+        self._formatters = sorted(self._formatters, key=cmp_to_key(TypeFormatter.cmp))
         self._default_formatter = DefaultFormatter(text_style=self._options.text_style)
 
     @staticmethod

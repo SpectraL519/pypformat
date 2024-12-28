@@ -4,14 +4,14 @@ from typing import Any, Callable, Union
 if sys.version_info >= (3, 10):
     import types
 
-    union_type = types.UnionType
+    _union_type = types.UnionType
 else:
-    union_type = None
+    _union_type = None
 
 
 def is_union(t: type) -> bool:
     return (
-        (union_type is not None and isinstance(t, union_type))  # `|` union (Python 3.10+)
+        (_union_type is not None and isinstance(t, _union_type))  # `|` union (Python 3.10+)
         or (hasattr(t, "__origin__") and t.__origin__ is Union)  # typing.Union
     )
 

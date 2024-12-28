@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from typing import Any
 
 from .common_types import MultilineTypeFormatterFunc, NormalTypeFormatterFunc
-from .typing_utility import has_valid_type
+from .typing_utility import has_valid_type, type_cmp
 
 
 class TypeFormatter(ABC):
@@ -35,6 +35,10 @@ class TypeFormatter(ABC):
             raise TypeError(
                 f"[{repr(self)}] Cannot format an object of type `{type(obj).__name__}` - `{str(obj)}`"
             )
+
+    @staticmethod
+    def cmp(fmt1: TypeFormatter, fmt2: TypeFormatter) -> int:
+        return type_cmp(fmt1.type, fmt2.type)
 
 
 class NormalFormatter(TypeFormatter):

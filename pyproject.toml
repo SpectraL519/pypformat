@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pypformat"
-version = "1.0.0"
+version = "1.1.0"
 description = "Python pretty formatting package"
 authors = [
   {name = "SpectraL519"}
@@ -14,7 +14,7 @@ readme = {file = "README_pypi.md", content-type = "text/markdown; charset=UTF-8;
 license = {file = "LICENSE"}
 requires-python = ">= 3.9"
 dependencies = ["colored==2.2.*"]
-keywords = ["pretty", "formatting", "format", "print"]
+keywords = ["string", "format", "formatting", "pretty", "print"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
 
