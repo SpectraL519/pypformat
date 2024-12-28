@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from typing import Any
 
 from .common_types import MultilineTypeFormatterFunc, NormalTypeFormatterFunc
-from .typing_utility import _has_valid_type
+from .typing_utility import has_valid_type
 
 
 class TypeFormatter(ABC):
@@ -28,7 +28,7 @@ class TypeFormatter(ABC):
         return f"{self.__class__.__name__}({self.type.__name__})"
 
     def has_valid_type(self, obj: Any, exact_match: bool = False) -> bool:
-        return _has_valid_type(obj, self.type, exact_match)
+        return has_valid_type(obj, self.type, exact_match)
 
     def _check_type(self, obj: Any) -> None:
         if not isinstance(obj, self.type):

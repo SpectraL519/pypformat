@@ -72,7 +72,7 @@ class TestTypeFormatterCommon:
     def test_repr(self, sut):
         assert repr(sut) == f"{self.fmt_type.__name__}({self.type.__name__})"
 
-    @patch("pformat.formatter_types._has_valid_type")
+    @patch("pformat.formatter_types.has_valid_type")
     def test_has_valid_type(self, mock_has_valid_type, sut: TypeFormatter):
         class DummyType:
             pass
