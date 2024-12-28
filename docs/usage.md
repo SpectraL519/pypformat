@@ -71,7 +71,7 @@ The table below contains a brief overview of all available formatting options.
 | `style_entire_text` | `bool` | `False` | If `True`, the pretty formatter will apply the given style to the entire text.<br/>If `False`, the style will only be applied to individual values. |
 | `exact_type_matching` | `bool` | `False` | If `True`, the pretty formatter will apply the `projections` and `formatters` to items based on the `isinstance` checks.<br/>If `False`, `type(item) is <specified-type>` checks will be used. |
 | `projections` | `TypeProjectionFuncMapping`<br>(Optional) | `None` | A *type to projection function* mapping, where the specified projection functions will be applied to each item **recursively** before formatting - only if the item's type is a valid key in the mapping. |
-| `formatters` | `MutableSequence[TypeFormatter]`<br/>(Optional) | `None` | A mutable sequence of [`TypeFormatter`](/docs/utility.md#type-specific-formatters) objects, which is prepended to a list of predefined type formatters, which is iterated in order during the process of type matching while formatting data. |
+| `formatters` | `MutableSequence[TypeFormatter]`<br/>(Optional) | `None` | A mutable sequence of [`TypeFormatter`](/docs/utility.md#type-specific-formatters) objects, which is prepended to a list of predefined type formatters and then sorted in an inheritance-wise order (the child types precede their parent types in the ordering). Then, the preprocessed sequence is traveresed in this order to match the type of an input element to a corresponding formatter object. |
 
 > [!WARNING]
 >
