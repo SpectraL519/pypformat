@@ -20,7 +20,7 @@ class TypeSpecifcCallable(ABC):
         return self.type == other.type
 
     @abstractmethod
-    def __call__(self, obj: Any, depth: int = 0) -> str | Iterable[str]:
+    def __call__(self, obj: Any, *args, **kwargs) -> str | Iterable[str]:
         raise NotImplementedError(f"{repr(self)}.__call__ is not implemented")
 
     def __repr__(self) -> str:
@@ -32,7 +32,7 @@ class TypeSpecifcCallable(ABC):
     def _check_type(self, obj: Any) -> None:
         if not isinstance(obj, self.type):
             raise TypeError(
-                f"[{repr(self)}] Cannot format an object of type `{type(obj).__name__}` - `{str(obj)}`"
+                f"[{repr(self)}] Cannot process an object of type `{type(obj).__name__}` - `{str(obj)}`"
             )
 
     @classmethod

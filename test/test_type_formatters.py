@@ -46,11 +46,8 @@ FORMATTER_TYPES = [
 
 class TestTypeFormatterCommon:
     @pytest.fixture(
-        params=product(FORMATTER_TYPES, TYPES),
-        ids=[
-            f"fmt_type={fmt_t.__name__},t={t.__name__}"
-            for fmt_t, t in product(FORMATTER_TYPES, TYPES)
-        ],
+        params=list(product(FORMATTER_TYPES, TYPES)),
+        ids=[f"fmt_type={ft.__name__},t={t.__name__}" for ft, t in product(FORMATTER_TYPES, TYPES)],
     )
     def sut(self, request: pytest.FixtureRequest) -> TypeFormatter:
         self.fmt_type, self.type = request.param
@@ -69,7 +66,7 @@ class TestTypeFormatterCommon:
         assert all(sut == ft(self.type) for ft in FORMATTER_TYPES)
         assert all(sut != ft(InvalidType) for ft in FORMATTER_TYPES)
 
-    def test_repr(self, sut):
+    def test_repr(self, sut: TypeFormatter):
         assert repr(sut) == f"{self.fmt_type.__name__}({self.type.__name__})"
 
     @patch("pformat.type_specific_callable.has_valid_type")
@@ -87,16 +84,6 @@ class TestTypeFormatterCommon:
         sut.has_valid_type(dummy, exact_match=True)
         mock_has_valid_type.assert_called_once_with(dummy, self.type, True)
 
-
-class TestTypeFormatter:
-    @pytest.fixture(
-        params=list(product(FORMATTER_TYPES, TYPES)),
-        ids=[f"fmt_type={ft},t={t.__name__}" for ft, t in product(FORMATTER_TYPES, TYPES)],
-    )
-    def sut(self, request: pytest.FixtureRequest) -> TypeFormatter:
-        self.fmt_type, self.type = request.param
-        return self.fmt_type(self.type)
-
     def test_call(self, sut: TypeFormatter):
         with pytest.raises(NotImplementedError) as err:
             sut(self.type())
@@ -110,7 +97,7 @@ class TestTypeFormatter:
 
         assert (
             str(err.value)
-            == f"[{repr(sut)}] Cannot format an object of type `InvalidType` - `{str(invalid_value)}`"
+            == f"[{repr(sut)}] Cannot process an object of type `InvalidType` - `{str(invalid_value)}`"
         )
 
     def test_check_type_valid(self, sut: TypeFormatter):
@@ -131,7 +118,7 @@ class TestCustomNormalFormatter:
 
         assert (
             str(err.value)
-            == f"[{repr(sut)}] Cannot format an object of type `InvalidType` - `{str(invalid_value)}`"
+            == f"[{repr(sut)}] Cannot process an object of type `InvalidType` - `{str(invalid_value)}`"
         )
 
     def test_call_with_correct_type(self, sut: CustomNormalFormatter):
@@ -163,7 +150,7 @@ class TestCustomMultilineFormatter:
 
         assert (
             str(err.value)
-            == f"[{repr(sut)}] Cannot format an object of type `InvalidType` - `{str(invalid_value)}`"
+            == f"[{repr(sut)}] Cannot process an object of type `InvalidType` - `{str(invalid_value)}`"
         )
 
     def test_call_with_correct_type(self, sut: CustomMultilineFormatter):
