@@ -11,7 +11,7 @@ from .format_options import (
     TypeProjectionFuncMapping,
 )
 from .text_style import TextStyle, TextStyleParam, strlen_no_style
-from .type_specific_formatters import MultilineFormatter, NormalFormatter, TypeFormatter
+from .type_formatters import MultilineFormatter, NormalFormatter, TypeFormatter
 
 
 class PrettyFormatter:

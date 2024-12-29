@@ -2,10 +2,10 @@ from dataclasses import MISSING, asdict, dataclass, field, fields
 from functools import cmp_to_key
 from typing import Any, MutableSequence, Optional
 
-from .common_types import TypeProjectionFuncMapping
 from .indentation_utility import IndentType
 from .text_style import TextStyle
-from .type_specific_formatters import TypeFormatter
+from .type_formatters import TypeFormatter
+from .type_projections import TypeProjectionFuncMapping
 
 
 @dataclass

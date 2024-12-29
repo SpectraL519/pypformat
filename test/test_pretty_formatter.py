@@ -10,7 +10,7 @@ from pformat.format_options import FormatOptions
 from pformat.indentation_utility import IndentType
 from pformat.pretty_formatter import IterableFormatter, MappingFormatter, PrettyFormatter
 from pformat.text_style import TextStyle
-from pformat.type_specific_formatters import normal_formatter
+from pformat.type_formatters import normal_formatter
 
 
 class TestPrettyFormatterInitialization:
