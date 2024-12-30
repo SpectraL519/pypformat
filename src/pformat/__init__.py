@@ -25,3 +25,4 @@ from .type_projection import (
     identity_projection_func,
     projection,
 )
+from .type_specific_callable import TypeSpecifcCallable

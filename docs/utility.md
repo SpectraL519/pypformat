@@ -1,8 +1,23 @@
 # PyPformat - Utility
 
+- [Type projection objects](#type-projection-objects)
 - [Type-specific formatters](#type-specific-formatters)
 - [Text styling](#text-styling)
 - [Indentation](#indentation)
+
+<br />
+<br />
+
+## Type-specific callable objects
+
+The `PyPformat` package defines a `TypeSpecificCallable` abstract class (file: [type_specific_callable.py](/src/pformat/type_specific_callable.py)) which is used as a base class for the type [projection](#type-projection-objects) and [formatter](#type-specific-formatters) objects.
+
+This class has only one member - `type: type`, which is also used as its identifier.
+
+<br />
+<br />
+
+## Type projection objects
 
 <br />
 <br />

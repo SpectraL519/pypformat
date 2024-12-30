@@ -2,22 +2,25 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
+from functools import cmp_to_key
 from typing import Any
 
-from .typing_utility import has_valid_type, is_subclass, type_cmp
+from .typing_utility import Ordering, has_valid_type, is_subclass, type_cmp
 
 
 class TypeSpecifcCallable(ABC):
     def __init__(self, t: type):
         self.type = t
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: TypeSpecifcCallable) -> bool:
+        self._validate_for_comparison(other)
+        return self.type == other.type
+
+    def _validate_for_comparison(self, other: Any):
         if not isinstance(other, TypeSpecifcCallable):
             raise TypeError(
                 f"Cannot compare a `{self.__class__.__name__}` instance to an instance of `{type(other).__name__}`"
             )
-
-        return self.type == other.type
 
     @abstractmethod
     def __call__(self, obj: Any, *args, **kwargs) -> str | Iterable[str]:
@@ -41,3 +44,5 @@ class TypeSpecifcCallable(ABC):
     @classmethod
     def cmp(cls, c1: TypeSpecifcCallable, c2: TypeSpecifcCallable) -> int:
         return type_cmp(c1.type, c2.type)
+
+    key = classmethod(cmp_to_key(cmp))
