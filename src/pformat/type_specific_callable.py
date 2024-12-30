@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from typing import Any
 
-from .typing_utility import has_valid_type, type_cmp
+from .typing_utility import has_valid_type, is_subclass, type_cmp
 
 
 class TypeSpecifcCallable(ABC):
@@ -34,6 +34,9 @@ class TypeSpecifcCallable(ABC):
             raise TypeError(
                 f"[{repr(self)}] Cannot process an object of type `{type(obj).__name__}` - `{str(obj)}`"
             )
+
+    def covers(self, other: TypeSpecifcCallable, exact_match: bool = False) -> bool:
+        return other.type is self.type if exact_match else is_subclass(other.type, self.type)
 
     @classmethod
     def cmp(cls, c1: TypeSpecifcCallable, c2: TypeSpecifcCallable) -> int:

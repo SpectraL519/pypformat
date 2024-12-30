@@ -19,4 +19,9 @@ from .type_formatters import (
     multiline_formatter,
     normal_formatter,
 )
-from .type_projections import TypeProjectionFunc, TypeProjectionFuncMapping
+from .type_projection import (
+    TypeProjection,
+    TypeProjectionFunc,
+    identity_projection_func,
+    projection,
+)

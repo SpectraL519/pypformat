@@ -11,6 +11,7 @@ from pformat.indentation_utility import IndentType
 from pformat.pretty_formatter import IterableFormatter, MappingFormatter, PrettyFormatter
 from pformat.text_style import TextStyle
 from pformat.type_formatters import normal_formatter
+from pformat.type_projection import projection
 
 
 class TestPrettyFormatterInitialization:
@@ -272,16 +273,11 @@ class TestPrettyFormatterStyleEntireText:
 
 class TestPrettyFormatterProjections:
     def test_format_projected_elements(self):
-        float_proj = lambda f: int(f) + 1
-        str_proj = lambda s: [ord(c) for c in s]
+        float_proj = projection(float, lambda f: int(f) + 1)
+        str_proj = projection(str, lambda s: [ord(c) for c in s])
 
         sut = PrettyFormatter.new(
-            compact=True,
-            width=INT_UNBOUND,
-            projections={
-                float: float_proj,
-                str: str_proj,
-            },
+            compact=True, width=INT_UNBOUND, projections=(float_proj, str_proj)
         )
 
         f = 3.14
@@ -296,11 +292,11 @@ class TestPrettyFormatterProjections:
         assert sut(s) == repr(str_proj(s))
         assert sut.format(s) == repr(str_proj(s))
 
-    def test_format_projected_elements_with_no_matchin_projection(self):
+    def test_format_projected_elements_with_no_matching_projection(self):
         sut = PrettyFormatter.new(
             compact=True,
             width=None,
-            projections=dict(),
+            projections=tuple(),
         )
 
         f = 3.14

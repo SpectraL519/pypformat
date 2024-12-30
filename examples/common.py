@@ -52,10 +52,10 @@ FMT_CONFIGS = [
             compact=True,
             indent_type=pf.IndentType.BROKEN_BAR(style=Fore.grey_37),
             text_style=Fore.magenta,
-            projections={
-                float: lambda f: int(f),
-                bytes: lambda b: bytearray(b),
-            },
+            projections=(
+                pf.projection(float, lambda f: int(f)),
+                pf.projection(bytes, lambda b: bytearray(b)),
+            ),
         ),
     ),
     Config(

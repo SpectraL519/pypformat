@@ -6,12 +6,10 @@ from functools import cmp_to_key
 from types import MappingProxyType
 from typing import Any, MutableSequence, Optional, Union
 
-from .format_options import (
-    FormatOptions,
-    TypeProjectionFuncMapping,
-)
+from .format_options import FormatOptions
 from .text_style import TextStyle, TextStyleParam, strlen_no_style
 from .type_formatters import MultilineFormatter, NormalFormatter, TypeFormatter
+from .type_projection import TypeProjection
 
 
 class PrettyFormatter:
@@ -23,7 +21,7 @@ class PrettyFormatter:
 
         self._formatters = self._options.formatters or list()
         for formatter in self.__predefined_formatters():
-            if formatter not in self._formatters:
+            if not any(fmt.covers(formatter) for fmt in self._formatters):
                 self._formatters.append(formatter)
 
         self._formatters = sorted(self._formatters, key=cmp_to_key(TypeFormatter.cmp))
@@ -37,7 +35,7 @@ class PrettyFormatter:
         text_style: TextStyleParam = FormatOptions.default("text_style"),
         style_entire_text: bool = FormatOptions.default("style_entire_text"),
         exact_type_matching: bool = FormatOptions.default("exact_type_matching"),
-        projections: Optional[TypeProjectionFuncMapping] = FormatOptions.default("projections"),
+        projections: Optional[Iterable[TypeProjection]] = FormatOptions.default("projections"),
         formatters: Optional[MutableSequence[TypeFormatter]] = FormatOptions.default("formatters"),
     ) -> PrettyFormatter:
         return PrettyFormatter(
@@ -78,9 +76,8 @@ class PrettyFormatter:
         if self._options.projections is None:
             return obj
 
-        for t, projection in self._options.projections.items():
-            # TODO: use has_valid_type after YT-PYPF-22
-            if isinstance(obj, t):
+        for projection in self._options.projections:
+            if projection.has_valid_type(obj, exact_match=self._options.exact_type_matching):
                 return projection(obj)
 
         return obj
