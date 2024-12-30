@@ -12,12 +12,67 @@
 
 The `PyPformat` package defines a `TypeSpecificCallable` abstract class (file: [type_specific_callable.py](/src/pformat/type_specific_callable.py)) which is used as a base class for the type [projection](#type-projection-objects) and [formatter](#type-specific-formatters) objects.
 
-This class has only one member - `type: type`, which is also used as its identifier.
+This class has only one member - `type: type`, which is also used as and identifier of the class. Naturally, it is the only parameter of the class's constructor.
+
+The `TypeSpecificCallable` defines the following methods:
+
+- **Abstract** `__call__` magic method, which takes at least one positional argument:
+
+  ```python
+  @abstractmethod
+  __call__(self, obj: Any, *args, **kwargs) -> Any:
+  ```
+
+- Magic methods: `__eq__`, `__repr__`
+
+- `has_valid_type` - used to verify whether an object has a type which can be handled by the callable instance.
+
+  ```python
+  has_valid_type(self, obj: Any, exact_match: bool = False) -> bool
+  ```
+
+- `covers` - used to verify whether the `other` instance of `TypeSpecificCallable` contains a type which can also be handled by `self`.
+
+  ```python
+  covers(self, other: TypeSpecifcCallable, exact_match: bool = False) -> bool
+  ```
+
+> [!NOTE]
+> If the `exact_match` parameter is set to `True`, the functions will use the `<type-to-check> is self.type` check. Otherwise, the `isinstance` or `issubclass` behaviour is used.
+
+- `cmp` - a classmethod which defines the comparator logic used for ordering iterables of `TypeSpecificCallable`.
+
+  ```python
+  @classmethod
+  cmp(cls, c1: TypeSpecifcCallable, c2: TypeSpecifcCallable) -> int
+  ```
+
+  The function will return:
+
+  - a negative number if `c1 < c2`,
+  - a positive number if `c1 > c2`,
+  - zero otherwise,
+
+  with the assumption that an instance `c1` is considered greater than `c2` if `c2.type` is a subtype of `c1.type`. This includes the `Any` and `Union` types.
 
 <br />
 <br />
 
 ## Type projection objects
+
+The `PrettyFormatter` class supports type projections through the `TypeProjection` class defined in the [type_projection.py](/src/pformat/type_projection.py) file. This is a subclass of [`TypeSpecificCallable`](#type-specific-callable-objects) which implies that instances of `TypeProjection` are identified by their `type` parameter.
+
+However, the `TypeProjection` class requires a `proj_func: TypeProjectionFunc` parameter in its constructor in addition to the `type` parameter, where `TypeProjectionFunc = Callable[[Any], Any]`. The `proj_func` is the functional object which performs the actual projection logic.
+
+When defining the projections for the `PrettyFormatter` class, you can instantiate the instances of `TypeProjection` directly or using the defined builder function:
+
+```python
+int_proj = pf.TypeProjection(int, lambda i: str(i))
+float_proj = pf.projection(float, lambda f: int(f))
+```
+
+> [!CAUTION]
+> Defining projection functions which project a given type onto itself, a subtype of the given type or a collection of objects of the same or derived types **with `exact_type_matching=False` (default)** will result in an infinite recursion.
 
 <br />
 <br />
@@ -26,11 +81,7 @@ This class has only one member - `type: type`, which is also used as its identif
 
 The `PrettyFormatter` class cotnains an ordered collection of type specific formatters. When formatting an item, this collection is traversed and the first matching formatter is applied to the input item.
 
-The type specific formatters are instances of the `TypeFormatter` abstract class (defined in the [type_specific_formatters.py](/src/pformat/type_specific_formatters.py) file). The identifier of this class is its `type` member, which is then used in matching the formatted item's type in the function:
-
-```python
-has_valid_type(obj: Any, exact_match: bool = False) -> bool
-```
+The type specific formatters are instances of the `TypeFormatter` abstract class (defined in the [type_specific_formatters.py](/src/pformat/type_specific_formatters.py) file), which inherits from [`TypeSpecificCallable`](#type-specific-callable-objects) and therefore the identifier of this class is its `type` member, which is then used for matching the formatted item's type in the `has_valid_type` function.
 
 <br />
 
@@ -46,7 +97,7 @@ However, the abstract classes actually used as base types for concrete formatter
 - `NormalFormatter(TypeFormatter)` - the `__call__` abstract method should return an instance of `str`,
 - `MultilineFormatter(TypeFormatter)` - the `__call__` abstract method should return an instance of `Iterable[str]`, where each element in the returned collection should be a sepparate line.
 
-With that in mind, you can use these classes to create custom formatters.
+With that in mind, you can use these classes to create our own formatter classes.
 
 Alternatively, you can create custom formatter objects using the predefined functions:
 
@@ -86,7 +137,8 @@ The members of this class are:
 
 <br />
 
-### Additional utility
+<details>
+<summary><h3>Additional utility</h3></summary>
 
 #### Type definitions
 
@@ -107,6 +159,8 @@ The members of this class are:
 
 - `rm_style_modifiers(s: str) -> str` - removes all ANSI escape sequences from a string
 - `strlen_no_style(s: str) -> int` - returns the length of the string after removing its style modifiers
+
+</details>
 
 <br />
 <br />

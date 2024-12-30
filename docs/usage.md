@@ -70,7 +70,7 @@ The table below contains a brief overview of all available formatting options.
 | `text_style` | [`TextStyle`](/docs/utility.md#text-styling) | `TextStyle()` | Specifies the style, which will be applied to the text when formatting. |
 | `style_entire_text` | `bool` | `False` | If `True`, the pretty formatter will apply the given style to the entire text.<br/>If `False`, the style will only be applied to individual values. |
 | `exact_type_matching` | `bool` | `False` | If `True`, the pretty formatter will apply the `projections` and `formatters` to items based on the `isinstance` checks.<br/>If `False`, `type(item) is <specified-type>` checks will be used. |
-| `projections` | `Iterable[TypeProjection]`<br>(Optional) | `None` | A collection of `TypeProjection` objects, which will be applied to each item with a matching type **recursively** before formatting. |
+| `projections` | `Iterable[TypeProjection]`<br>(Optional) | `None` | A collection of [`TypeProjection`](/docs/utility.md#type-projection-objects) objects, which will be applied to each item with a matching type **recursively** before formatting. |
 | `formatters` | `MutableSequence[TypeFormatter]`<br/>(Optional) | `None` | A mutable sequence of [`TypeFormatter`](/docs/utility.md#type-specific-formatters) objects, which is prepended to a list of predefined type formatters and then sorted in an inheritance-wise order (the child types precede their parent types in the ordering). Then, the preprocessed sequence is traveresed in this order to match the type of an input element to a corresponding formatter object. |
 
 > [!WARNING]

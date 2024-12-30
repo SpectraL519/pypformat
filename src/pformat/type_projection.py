@@ -10,14 +10,14 @@ def identity_projection_func(obj: Any) -> Any:
 
 
 class TypeProjection(TypeSpecifcCallable):
-    def __init__(self, t: type, projection_func: TypeProjectionFunc = identity_projection_func):
+    def __init__(self, t: type, proj_func: TypeProjectionFunc = identity_projection_func):
         super().__init__(t)
-        self.__proj_func = projection_func
+        self.__proj_func = proj_func
 
     def __call__(self, obj: Any) -> Any:
         self._check_type(obj)
         return self.__proj_func(obj)
 
 
-def projection(t: type, projection_func: TypeProjectionFunc) -> TypeProjection:
-    return TypeProjection(t, projection_func)
+def projection(t: type, proj_func: TypeProjectionFunc) -> TypeProjection:
+    return TypeProjection(t, proj_func)
