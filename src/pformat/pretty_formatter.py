@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import ChainMap, Counter, OrderedDict, defaultdict, deque
+from collections import ChainMap, Counter, OrderedDict, UserString, defaultdict, deque
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from functools import cmp_to_key
@@ -96,7 +96,7 @@ class PrettyFormatter:
 
     def __predefined_formatters(self) -> list[TypeFormatter]:
         return [
-            DefaultFormatter(str, self._options.text_style),
+            DefaultFormatter(Union[str, UserString], self._options.text_style),
             DefaultFormatter(bytes, self._options.text_style),
             DefaultFormatter(bytearray, self._options.text_style),
             MappingFormatter(self),

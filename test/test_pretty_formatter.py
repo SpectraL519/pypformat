@@ -1,4 +1,4 @@
-from collections import ChainMap, OrderedDict, defaultdict, deque
+from collections import OrderedDict, UserString, defaultdict, deque
 from collections.abc import Iterable, Mapping
 from itertools import product
 from types import MappingProxyType
@@ -12,6 +12,8 @@ from pformat.pretty_formatter import IterableFormatter, MappingFormatter, Pretty
 from pformat.text_style import TextStyle
 from pformat.type_formatters import normal_formatter
 from pformat.type_projection import projection
+
+# TODO: figure out how to set the width parameter value dynamically for compact tests
 
 
 class TestPrettyFormatterInitialization:
@@ -34,7 +36,7 @@ class TestPrettyFormatterInitialization:
         assert sut_new._options == custom_options
 
 
-SIMPLE_DATA = [123, 3.14, "string", b"bytes", bytearray([1, 2, 3])]
+SIMPLE_DATA = [123, 3.14, "string", UserString("user_string"), b"bytes", bytearray([1, 2, 3])]
 SIMPLE_HASHABLE_DATA = [data for data in SIMPLE_DATA if data.__hash__ is not None]
 INDENT_WIDTH_VALS = [2, 4]
 INDENT_TYPE_VALS = [
@@ -43,7 +45,7 @@ INDENT_TYPE_VALS = [
 ]
 RECOGNIZED_ITERABLE_TYPES = [list, set, frozenset, tuple, deque]
 RECOGNIZED_NHASH_ITERABLE_TYPES = [list, tuple, deque]
-RECOGNIZED_MAPPING_TYPES = [dict, defaultdict, OrderedDict, ChainMap, MappingProxyType]
+RECOGNIZED_MAPPING_TYPES = MappingFormatter._TYPES.__args__
 
 INT_UNBOUND = 10e9
 NESTED_MAPPING_KEY = "nested_elem"
@@ -213,7 +215,7 @@ class TestPrettyFormatterCompactForNestedMappingTypes:
         self.indent_type = FormatOptions.default("indent_type")
         return PrettyFormatter.new(
             compact=True,
-            width=100,
+            width=120,
         )
 
     @pytest.mark.parametrize("mapping_type", RECOGNIZED_MAPPING_TYPES)
