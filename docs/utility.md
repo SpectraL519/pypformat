@@ -1,7 +1,8 @@
 # PyPformat - Utility
 
+- [Type-specific callable objects](#type-specific-callable-objects)
 - [Type projection objects](#type-projection-objects)
-- [Type-specific formatters](#type-specific-formatters)
+- [Type formatter objects](#type-formatter-objects)
 - [Text styling](#text-styling)
 - [Indentation](#indentation)
 
@@ -10,7 +11,7 @@
 
 ## Type-specific callable objects
 
-The `PyPformat` package defines a `TypeSpecificCallable` abstract class (file: [type_specific_callable.py](/src/pformat/type_specific_callable.py)) which is used as a base class for the type [projection](#type-projection-objects) and [formatter](#type-specific-formatters) objects.
+The `PyPformat` package defines a `TypeSpecificCallable` abstract class (file: [type_specific_callable.py](/src/pformat/type_specific_callable.py)) which is used as a base class for the type [projection](#type-projection-objects) and [formatter](#type-formatter-objects) objects.
 
 This class has only one member - `type: type`, which is also used as and identifier of the class. Naturally, it is the only parameter of the class's constructor.
 
@@ -77,7 +78,7 @@ float_proj = pf.projection(float, lambda f: int(f))
 <br />
 <br />
 
-## Type-specific formatters
+## Type formatter objects
 
 The `PrettyFormatter` class cotnains an ordered collection of type specific formatters. When formatting an item, this collection is traversed and the first matching formatter is applied to the input item.
 
