@@ -1,11 +1,11 @@
 from dataclasses import MISSING, asdict, dataclass, field, fields
 from functools import cmp_to_key
-from typing import Any, MutableSequence, Optional
+from typing import Any, Iterable, MutableSequence, Optional
 
-from .common_types import TypeProjectionFuncMapping
 from .indentation_utility import IndentType
 from .text_style import TextStyle
-from .type_specific_formatters import TypeFormatter
+from .type_formatters import TypeFormatter
+from .type_projection import TypeProjection
 
 
 @dataclass
@@ -16,17 +16,18 @@ class FormatOptions:
     text_style: TextStyle = field(default_factory=TextStyle)
     style_entire_text: bool = False
     exact_type_matching: bool = False
-    projections: Optional[TypeProjectionFuncMapping] = None
+    projections: Optional[Iterable[TypeProjection]] = None
     formatters: Optional[MutableSequence[TypeFormatter]] = None
 
     def __post_init__(self):
         if not isinstance(self.text_style, TextStyle):
             self.text_style = TextStyle.new(self.text_style)
 
+        if self.projections is not None:
+            self.projections = sorted(self.projections, key=cmp_to_key(TypeProjection.cmp))
+
         if self.formatters is not None:
             self.formatters = sorted(self.formatters, key=cmp_to_key(TypeFormatter.cmp))
-
-        # TODO: sort projections after YT-PYPF-22
 
     def asdict(self, shallow: bool = True) -> dict:
         if shallow:

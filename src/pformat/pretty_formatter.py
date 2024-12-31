@@ -2,16 +2,15 @@ from __future__ import annotations
 
 from collections import ChainMap, OrderedDict, defaultdict, deque
 from collections.abc import Iterable, Mapping
+from copy import deepcopy
 from functools import cmp_to_key
 from types import MappingProxyType
 from typing import Any, MutableSequence, Optional, Union
 
-from .format_options import (
-    FormatOptions,
-    TypeProjectionFuncMapping,
-)
+from .format_options import FormatOptions
 from .text_style import TextStyle, TextStyleParam, strlen_no_style
-from .type_specific_formatters import MultilineFormatter, NormalFormatter, TypeFormatter
+from .type_formatters import MultilineFormatter, NormalFormatter, TypeFormatter
+from .type_projection import TypeProjection
 
 
 class PrettyFormatter:
@@ -20,14 +19,7 @@ class PrettyFormatter:
         options: FormatOptions = FormatOptions(),
     ):
         self._options: FormatOptions = options
-
-        self._formatters = self._options.formatters or list()
-        for formatter in self.__predefined_formatters():
-            if formatter not in self._formatters:
-                self._formatters.append(formatter)
-
-        self._formatters = sorted(self._formatters, key=cmp_to_key(TypeFormatter.cmp))
-        self._default_formatter = DefaultFormatter(text_style=self._options.text_style)
+        self.__setup_formatters()
 
     @staticmethod
     def new(
@@ -37,7 +29,7 @@ class PrettyFormatter:
         text_style: TextStyleParam = FormatOptions.default("text_style"),
         style_entire_text: bool = FormatOptions.default("style_entire_text"),
         exact_type_matching: bool = FormatOptions.default("exact_type_matching"),
-        projections: Optional[TypeProjectionFuncMapping] = FormatOptions.default("projections"),
+        projections: Optional[Iterable[TypeProjection]] = FormatOptions.default("projections"),
         formatters: Optional[MutableSequence[TypeFormatter]] = FormatOptions.default("formatters"),
     ) -> PrettyFormatter:
         return PrettyFormatter(
@@ -78,12 +70,29 @@ class PrettyFormatter:
         if self._options.projections is None:
             return obj
 
-        for t, projection in self._options.projections.items():
-            # TODO: use has_valid_type after YT-PYPF-22
-            if isinstance(obj, t):
+        for projection in self._options.projections:
+            if projection.has_valid_type(obj, exact_match=self._options.exact_type_matching):
                 return projection(obj)
 
         return obj
+
+    def __setup_formatters(self):
+        if self._options.formatters is None:
+            self._formatters = self.__predefined_formatters()
+        else:
+            self._formatters = deepcopy(self._options.formatters)
+            not_covered_predefined_formatters = [
+                pre_fmt
+                for pre_fmt in self.__predefined_formatters()
+                if not any(
+                    fmt.covers(pre_fmt, exact_match=self._options.exact_type_matching)
+                    for fmt in self._formatters
+                )
+            ]
+            self._formatters.extend(not_covered_predefined_formatters)
+
+        self._formatters = sorted(self._formatters, key=cmp_to_key(TypeFormatter.cmp))
+        self._default_formatter = DefaultFormatter(text_style=self._options.text_style)
 
     def __predefined_formatters(self) -> list[TypeFormatter]:
         return [
