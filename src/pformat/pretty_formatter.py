@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import ChainMap, OrderedDict, defaultdict, deque
+from collections import ChainMap, Counter, OrderedDict, defaultdict, deque
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from functools import cmp_to_key
@@ -160,21 +160,20 @@ class IterableFormatter(MultilineFormatter):
 
     @staticmethod
     def get_parens(collection: Iterable) -> tuple[str, str]:
-        if isinstance(collection, list):
+        if type(collection) is list:
             return "[", "]"
-        if isinstance(collection, set):
+        if type(collection) is set:
             return "{", "}"
-        if isinstance(collection, frozenset):
+        if type(collection) is frozenset:
             return "frozenset({", "})"
-        if isinstance(collection, tuple) or isinstance(collection, range):
+        if type(collection) in (tuple, range):
             return "(", ")"
-        if isinstance(collection, deque):
-            return "deque([", "])"
+
         return f"{type(collection).__name__}([", "])"
 
 
 class MappingFormatter(MultilineFormatter):
-    _TYPES = Union[dict, defaultdict, OrderedDict, ChainMap, MappingProxyType]
+    _TYPES = Union[dict, defaultdict, OrderedDict, ChainMap, MappingProxyType, Counter]
 
     def __init__(self, base_formatter: PrettyFormatter):
         self._base_formatter = base_formatter
@@ -222,12 +221,12 @@ class MappingFormatter(MultilineFormatter):
 
     @staticmethod
     def get_parens(mapping: Mapping) -> tuple[str, str]:
+        if type(mapping) is dict:
+            return "{", "}"
+
         if isinstance(mapping, defaultdict):
             return f"defaultdict({mapping.default_factory}, {{", "})"
-        if isinstance(mapping, OrderedDict):
-            return "OrderedDict({", "})"
-        if isinstance(mapping, dict):
-            return "{", "}"
         if isinstance(mapping, MappingProxyType):
             return "mappingproxy({", "})"
+
         return f"{type(mapping).__name__}({{", "})"
