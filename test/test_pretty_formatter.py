@@ -1,4 +1,4 @@
-from collections import OrderedDict, UserString, defaultdict, deque
+from collections import OrderedDict, UserList, UserString, defaultdict, deque
 from collections.abc import Iterable, Mapping
 from itertools import product
 from types import MappingProxyType
@@ -43,8 +43,8 @@ INDENT_TYPE_VALS = [
     gen(width=w)
     for gen, w in product([IndentType.NONE, IndentType.DOTS, IndentType.LINE], INDENT_WIDTH_VALS)
 ]
-RECOGNIZED_ITERABLE_TYPES = [list, set, frozenset, tuple, deque]
-RECOGNIZED_NHASH_ITERABLE_TYPES = [list, tuple, deque]
+RECOGNIZED_ITERABLE_TYPES = [list, UserList, set, frozenset, tuple, deque]
+RECOGNIZED_NHASH_ITERABLE_TYPES = [list, UserList, tuple, deque]
 RECOGNIZED_MAPPING_TYPES = MappingFormatter._TYPES.__args__
 
 INT_UNBOUND = 10e9

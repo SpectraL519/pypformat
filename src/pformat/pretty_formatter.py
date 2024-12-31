@@ -1,6 +1,15 @@
 from __future__ import annotations
 
-from collections import ChainMap, Counter, OrderedDict, UserString, defaultdict, deque
+from collections import (
+    ChainMap,
+    Counter,
+    OrderedDict,
+    UserDict,
+    UserList,
+    UserString,
+    defaultdict,
+    deque,
+)
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from functools import cmp_to_key
@@ -92,32 +101,32 @@ class PrettyFormatter:
             self._formatters.extend(not_covered_predefined_formatters)
 
         self._formatters = sorted(self._formatters, key=cmp_to_key(TypeFormatter.cmp))
-        self._default_formatter = DefaultFormatter(text_style=self._options.text_style)
+        self._default_formatter = DefaultFormatter(Any, self._options)
 
     def __predefined_formatters(self) -> list[TypeFormatter]:
         return [
-            DefaultFormatter(Union[str, UserString], self._options.text_style),
-            DefaultFormatter(bytes, self._options.text_style),
-            DefaultFormatter(bytearray, self._options.text_style),
+            DefaultFormatter(Union[str, UserString], self._options),
+            DefaultFormatter(bytes, self._options),
+            DefaultFormatter(bytearray, self._options),
             MappingFormatter(self),
             IterableFormatter(self),
         ]
 
 
 class DefaultFormatter(NormalFormatter):
-    def __init__(self, t: type = Any, text_style: TextStyleParam = None):
+    def __init__(self, t: type, options: FormatOptions):
         super().__init__(t)
-        self._text_style = TextStyle.new(text_style)
+
+        self._exact_type_matching = options.exact_type_matching
+        self._text_style = deepcopy(options.text_style)
 
     def __call__(self, obj: Any, depth: int = 0) -> str:
-        if self.type is not Any:
-            self._check_type(obj)
-
+        self._validate_type(obj, self._exact_type_matching)
         return self._text_style.apply_to(repr(obj))
 
 
 class IterableFormatter(MultilineFormatter):
-    _TYPES = Union[list, set, frozenset, tuple, range, deque, memoryview]
+    _TYPES = Union[list, UserList, set, frozenset, tuple, range, deque, memoryview]
 
     def __init__(self, base_formatter: PrettyFormatter):
         self._base_formatter = base_formatter
@@ -129,7 +138,7 @@ class IterableFormatter(MultilineFormatter):
             super().__init__(Iterable)
 
     def __call__(self, collection: Iterable, depth: int = 0) -> list[str]:
-        self._check_type(collection)
+        self._validate_type(collection, self._options.exact_type_matching)
 
         opening, closing = IterableFormatter.get_parens(collection)
 
@@ -160,7 +169,7 @@ class IterableFormatter(MultilineFormatter):
 
     @staticmethod
     def get_parens(collection: Iterable) -> tuple[str, str]:
-        if type(collection) is list:
+        if type(collection) in (list, UserList):
             return "[", "]"
         if type(collection) is set:
             return "{", "}"
@@ -173,7 +182,7 @@ class IterableFormatter(MultilineFormatter):
 
 
 class MappingFormatter(MultilineFormatter):
-    _TYPES = Union[dict, defaultdict, OrderedDict, ChainMap, MappingProxyType, Counter]
+    _TYPES = Union[dict, defaultdict, UserDict, OrderedDict, ChainMap, MappingProxyType, Counter]
 
     def __init__(self, base_formatter: PrettyFormatter):
         self._base_formatter = base_formatter
@@ -185,7 +194,7 @@ class MappingFormatter(MultilineFormatter):
             super().__init__(Mapping)
 
     def __call__(self, mapping: Mapping, depth: int = 0) -> list[str]:
-        self._check_type(mapping)
+        self._validate_type(mapping, self._options.exact_type_matching)
 
         opening, closing = MappingFormatter.get_parens(mapping)
 
@@ -221,7 +230,7 @@ class MappingFormatter(MultilineFormatter):
 
     @staticmethod
     def get_parens(mapping: Mapping) -> tuple[str, str]:
-        if type(mapping) is dict:
+        if type(mapping) in (dict, UserDict):
             return "{", "}"
 
         if isinstance(mapping, defaultdict):

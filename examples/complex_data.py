@@ -2,7 +2,7 @@
 This example shows how a complex data, like iterables and mappings, is formatted.
 """
 
-from collections import ChainMap, Counter, OrderedDict, UserString, defaultdict
+from collections import ChainMap, Counter, OrderedDict, UserDict, UserList, UserString, defaultdict
 from types import MappingProxyType
 
 from common import FMT_CONFIGS, display
@@ -19,6 +19,7 @@ COLLECTION = [
     b"f\xcd\x11",
     bytearray([10, 15, 20]),
     range(5),
+    UserList([1, 2, 3]),
 ]
 
 MAPPING = {
@@ -31,9 +32,10 @@ MAPPING = {
             "a_very_long_dictionary_key7": ChainMap(
                 {"key10": [10, 11, 12, 13], "key8": 8, "key9": 9}
             ),
+            "key11": Counter("Hello"),
         },
     ),
-    "key11": Counter("Hello"),
+    "key12": UserDict({0: "a", 1: "b", 2: "c"}),
 }
 
 if __name__ == "__main__":

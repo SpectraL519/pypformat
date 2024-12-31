@@ -90,18 +90,18 @@ class TestTypeFormatterCommon:
 
         assert str(err.value) == f"{repr(sut)}.__call__ is not implemented"
 
-    def test_check_type_invalid(self, sut: TypeFormatter):
+    def test_validate_type_invalid(self, sut: TypeFormatter):
         invalid_value = InvalidType()
         with pytest.raises(TypeError) as err:
-            sut._check_type(invalid_value)
+            sut._validate_type(invalid_value)
 
         assert (
             str(err.value)
             == f"[{repr(sut)}] Cannot process an object of type `InvalidType` - `{str(invalid_value)}`"
         )
 
-    def test_check_type_valid(self, sut: TypeFormatter):
-        assert_does_not_throw(sut._check_type, self.type())
+    def test_validate_type_valid(self, sut: TypeFormatter):
+        assert_does_not_throw(sut._validate_type, self.type())
 
 
 class TestCustomNormalFormatter:

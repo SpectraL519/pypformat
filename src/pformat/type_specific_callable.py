@@ -30,8 +30,8 @@ class TypeSpecifcCallable(ABC):
     def has_valid_type(self, obj: Any, exact_match: bool = False) -> bool:
         return has_valid_type(obj, self.type, exact_match)
 
-    def _check_type(self, obj: Any) -> None:
-        if not isinstance(obj, self.type):
+    def _validate_type(self, obj: Any, exact_match: bool = False) -> None:
+        if not self.has_valid_type(obj, exact_match):
             raise TypeError(
                 f"[{repr(self)}] Cannot process an object of type `{type(obj).__name__}` - `{str(obj)}`"
             )

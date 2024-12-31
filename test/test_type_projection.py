@@ -64,18 +64,18 @@ class TestTypeProjection:
         sut.has_valid_type(invalid_value, exact_match=True)
         mock_has_valid_type.assert_called_once_with(invalid_value, self.type, True)
 
-    def test_check_type_invalid(self, sut: TypeProjection):
+    def test_validate_type_invalid(self, sut: TypeProjection):
         invalid_value = InvalidType()
         with pytest.raises(TypeError) as err:
-            sut._check_type(invalid_value)
+            sut._validate_type(invalid_value)
 
         assert (
             str(err.value)
             == f"[{repr(sut)}] Cannot process an object of type `InvalidType` - `{str(invalid_value)}`"
         )
 
-    def test_check_type_valid(self, sut: TypeProjection):
-        assert_does_not_throw(sut._check_type, self.value)
+    def test_validate_type_valid(self, sut: TypeProjection):
+        assert_does_not_throw(sut._validate_type, self.value)
 
     def test_call_with_invalid_type(self, sut: TypeProjection):
         invalid_value = InvalidType()
