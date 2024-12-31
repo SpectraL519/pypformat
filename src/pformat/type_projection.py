@@ -15,7 +15,7 @@ class TypeProjection(TypeSpecifcCallable):
         self.__proj_func = proj_func
 
     def __call__(self, obj: Any) -> Any:
-        self._check_type(obj)
+        self._validate_type(obj)
         return self.__proj_func(obj)
 
 

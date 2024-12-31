@@ -19,7 +19,7 @@ The example below demostrates the difference in the **default** outputs produced
 >>> from pprint import pprint
 >>> import pformat as pf
 >>>
->>> from collections import ChainMap, OrderedDict, defaultdict
+>>> from collections import ChainMap, Counter, OrderedDict, UserDict, defaultdict
 >>>
 >>> mapping = {
 ...     "key1": 1,
@@ -31,12 +31,15 @@ The example below demostrates the difference in the **default** outputs produced
 ...             "a_very_long_dictionary_key7": ChainMap(
 ...                 {"key10": [10, 11, 12, 13], "key8": 8, "key9": 9}
 ...             ),
+...             "key11": Counter("Hello"),
 ...         },
 ...     ),
+...     "key12": UserDict({0: "a", 1: "b", 2: "c"}),
 ... }
 >>>
 >>> pprint(mapping)
 {'key1': 1,
+ 'key12': {0: 'a', 1: 'b', 2: 'c'},
  'key2': OrderedDict({'key3': 3, 'key4': 4}),
  'key5': defaultdict(<class 'str'>,
                      {'a_very_long_dictionary_key7': ChainMap({'key10': [10,
@@ -45,6 +48,7 @@ The example below demostrates the difference in the **default** outputs produced
                                                                          13],
                                                                'key8': 8,
                                                                'key9': 9}),
+                      'key11': Counter({'l': 2, 'H': 1, 'e': 1, 'o': 1}),
                       'key6': 6})}
 >>>
 >>> formatter = pf.PrettyFormatter()
@@ -67,7 +71,18 @@ The example below demostrates the difference in the **default** outputs produced
             'key8': 8,
             'key9': 9,
         }),
+        'key11': Counter({
+            'H': 1,
+            'e': 1,
+            'l': 2,
+            'o': 1,
+        }),
     }),
+    'key12': {
+        0: 'a',
+        1: 'b',
+        2: 'c',
+    },
 }
 ```
 

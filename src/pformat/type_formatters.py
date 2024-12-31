@@ -23,7 +23,7 @@ class CustomNormalFormatter(NormalFormatter):
         self.__fmt_func = fmt_func
 
     def __call__(self, obj: Any, depth: int = 0) -> str:
-        self._check_type(obj)
+        self._validate_type(obj)
         return self.__fmt_func(obj, depth)
 
 
@@ -41,7 +41,7 @@ class CustomMultilineFormatter(MultilineFormatter):
         self.__fmt_func = fmt_func
 
     def __call__(self, obj: Any, depth: int = 0) -> str:
-        self._check_type(obj)
+        self._validate_type(obj)
         return self.__fmt_func(obj, depth)
 
 
