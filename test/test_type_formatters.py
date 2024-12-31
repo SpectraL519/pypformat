@@ -14,7 +14,7 @@ from pformat.type_formatters import (
     normal_formatter,
 )
 
-from .conftest import assert_does_not_throw
+from .conftest import assert_does_not_throw, gen_derived_type
 
 TYPES_DICT = {
     int: 123,
@@ -69,6 +69,12 @@ class TestTypeFormatterCommon:
     def test_repr(self, sut: TypeFormatter):
         assert repr(sut) == f"{self.fmt_type.__name__}({self.type.__name__})"
 
+    def test_call(self, sut: TypeFormatter):
+        with pytest.raises(NotImplementedError) as err:
+            sut(self.type())
+
+        assert str(err.value) == f"{repr(sut)}.__call__ is not implemented"
+
     @patch("pformat.type_specific_callable.has_valid_type")
     def test_has_valid_type(self, mock_has_valid_type, sut: TypeFormatter):
         class DummyType:
@@ -84,24 +90,34 @@ class TestTypeFormatterCommon:
         sut.has_valid_type(dummy, exact_match=True)
         mock_has_valid_type.assert_called_once_with(dummy, self.type, True)
 
-    def test_call(self, sut: TypeFormatter):
-        with pytest.raises(NotImplementedError) as err:
-            sut(self.type())
-
-        assert str(err.value) == f"{repr(sut)}.__call__ is not implemented"
-
     def test_validate_type_invalid(self, sut: TypeFormatter):
         invalid_value = InvalidType()
-        with pytest.raises(TypeError) as err:
-            sut._validate_type(invalid_value)
-
-        assert (
-            str(err.value)
-            == f"[{repr(sut)}] Cannot process an object of type `InvalidType` - `{str(invalid_value)}`"
+        expected_err_msg = (
+            f"[{repr(sut)}] Cannot process an object of type `InvalidType` - `{str(invalid_value)}`"
         )
+
+        with pytest.raises(TypeError) as err_1:
+            sut._validate_type(invalid_value)
+        assert str(err_1.value) == expected_err_msg
+
+        with pytest.raises(TypeError) as err_2:
+            sut._validate_type(invalid_value, exact_match=True)
+        assert str(err_2.value) == expected_err_msg
 
     def test_validate_type_valid(self, sut: TypeFormatter):
         assert_does_not_throw(sut._validate_type, self.type())
+        assert_does_not_throw(sut._validate_type, self.type(), True)
+
+    def test_validate_type_derived_with_exact_match(self, sut: TypeFormatter):
+        derived_type = gen_derived_type(self.type)
+        derived_value = derived_type()
+        with pytest.raises(TypeError) as err:
+            sut._validate_type(derived_value, exact_match=True)
+
+        assert (
+            str(err.value)
+            == f"[{repr(sut)}] Cannot process an object of type `{derived_type.__name__}` - `{str(derived_value)}`"
+        )
 
 
 class TestCustomNormalFormatter:

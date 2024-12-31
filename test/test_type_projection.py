@@ -4,7 +4,7 @@ import pytest
 
 from pformat.type_projection import TypeProjection, projection
 
-from .conftest import assert_does_not_throw
+from .conftest import assert_does_not_throw, gen_derived_type
 
 TYPE_VALS = {
     int: 123,
@@ -52,31 +52,6 @@ class TestTypeProjection:
     def test_repr(self, sut: TypeProjection):
         assert repr(sut) == f"TypeProjection({self.type.__name__})"
 
-    @patch("pformat.type_specific_callable.has_valid_type")
-    def test_has_valid_type(self, mock_has_valid_type, sut: TypeProjection):
-        invalid_value = InvalidType()
-
-        sut.has_valid_type(invalid_value)
-        mock_has_valid_type.assert_called_once_with(invalid_value, self.type, False)
-
-        mock_has_valid_type.reset_mock()
-
-        sut.has_valid_type(invalid_value, exact_match=True)
-        mock_has_valid_type.assert_called_once_with(invalid_value, self.type, True)
-
-    def test_validate_type_invalid(self, sut: TypeProjection):
-        invalid_value = InvalidType()
-        with pytest.raises(TypeError) as err:
-            sut._validate_type(invalid_value)
-
-        assert (
-            str(err.value)
-            == f"[{repr(sut)}] Cannot process an object of type `InvalidType` - `{str(invalid_value)}`"
-        )
-
-    def test_validate_type_valid(self, sut: TypeProjection):
-        assert_does_not_throw(sut._validate_type, self.value)
-
     def test_call_with_invalid_type(self, sut: TypeProjection):
         invalid_value = InvalidType()
         with pytest.raises(TypeError) as err:
@@ -97,6 +72,47 @@ class TestTypeProjection:
 
         sut = TypeProjection(t, proj)
         assert sut(value) == proj(value)
+
+    @patch("pformat.type_specific_callable.has_valid_type")
+    def test_has_valid_type(self, mock_has_valid_type, sut: TypeProjection):
+        invalid_value = InvalidType()
+
+        sut.has_valid_type(invalid_value)
+        mock_has_valid_type.assert_called_once_with(invalid_value, self.type, False)
+
+        mock_has_valid_type.reset_mock()
+
+        sut.has_valid_type(invalid_value, exact_match=True)
+        mock_has_valid_type.assert_called_once_with(invalid_value, self.type, True)
+
+    def test_validate_type_invalid(self, sut: TypeProjection):
+        invalid_value = InvalidType()
+        expected_err_msg = (
+            f"[{repr(sut)}] Cannot process an object of type `InvalidType` - `{str(invalid_value)}`"
+        )
+
+        with pytest.raises(TypeError) as err_1:
+            sut._validate_type(invalid_value)
+        assert str(err_1.value) == expected_err_msg
+
+        with pytest.raises(TypeError) as err_2:
+            sut._validate_type(invalid_value, exact_match=True)
+        assert str(err_2.value) == expected_err_msg
+
+    def test_validate_type_valid(self, sut: TypeProjection):
+        assert_does_not_throw(sut._validate_type, self.type())
+        assert_does_not_throw(sut._validate_type, self.type(), True)
+
+    def test_validate_type_derived_with_exact_match(self, sut: TypeProjection):
+        derived_type = gen_derived_type(self.type)
+        derived_value = derived_type()
+        with pytest.raises(TypeError) as err:
+            sut._validate_type(derived_value, exact_match=True)
+
+        assert (
+            str(err.value)
+            == f"[{repr(sut)}] Cannot process an object of type `{derived_type.__name__}` - `{str(derived_value)}`"
+        )
 
 
 @pytest.mark.parametrize("t", TYPES, ids=[f"t={t.__name__}" for t in TYPES])

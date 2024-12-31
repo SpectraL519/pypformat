@@ -14,3 +14,10 @@ def assert_does_not_throw(func: Callable, *args, **kwargs):
         func(*args, **kwargs)
     except Exception as e:
         pytest.fail(f"Function `{func.__name__}` raised an exception: {e}")
+
+
+def gen_derived_type(t: type) -> type:
+    class Derived(t):
+        pass
+
+    return Derived

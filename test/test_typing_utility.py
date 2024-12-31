@@ -6,6 +6,8 @@ import pytest
 
 from pformat.typing_utility import Ordering, has_valid_type, is_union, type_cmp
 
+from .conftest import gen_derived_type
+
 
 def test_is_union():
     assert is_union(Union[int, float])
@@ -33,13 +35,6 @@ class DummyType1:
 
 class DummyType2:
     pass
-
-
-def gen_derived_type(t: type) -> type:
-    class Derived(t):
-        pass
-
-    return Derived
 
 
 class TestHasValidType:
