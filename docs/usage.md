@@ -75,7 +75,11 @@ The table below contains a brief overview of all available formatting options.
 
 > [!WARNING]
 >
-> In the current version the text style specified in the formatting options may not be applied for types formatted using custom formatters (passed through the `formatters` parameter). Therefore the style must be applied manually within the custom formatter.
+> The text style specified in the formatting options may not be applied for types formatted using custom formatters (passed through the `formatters` parameter). Therefore the style must be applied manually within the custom formatter.
+
+> [!TIP]
+>
+> The type projections and custom formatter can be defined using the dedicated [PyPformat Magic Methods](/docs/utility.md#pypformat-magic-methods) instead of specifying them within the format options.
 
 <br />
 <br />

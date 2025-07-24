@@ -1,15 +1,16 @@
 # PyPformat - Utility
 
-- [Type-specific callable objects](#type-specific-callable-objects)
-- [Type projection objects](#type-projection-objects)
-- [Type formatter objects](#type-formatter-objects)
-- [Text styling](#text-styling)
+- [Type-specific Callable Objects](#type-specific-callable-objects)
+- [Type Projection Objects](#type-projection-objects)
+- [Type Formatter Objects](#type-formatter-objects)
+- [PyPformat Magic Methods](#pypformat-magic-methods)
+- [Text Styling](#text-styling)
 - [Indentation](#indentation)
 
 <br />
 <br />
 
-## Type-specific callable objects
+## Type-specific Callable Objects
 
 The `PyPformat` package defines a `TypeSpecificCallable` abstract class (file: [type_specific_callable.py](/src/pformat/type_specific_callable.py)) which is used as a base class for the type [projection](#type-projection-objects) and [formatter](#type-formatter-objects) objects.
 
@@ -41,7 +42,7 @@ The `TypeSpecificCallable` defines the following methods:
 > [!NOTE]
 > If the `exact_match` parameter is set to `True`, the functions will use the `<type-to-check> is self.type` check. Otherwise, the `isinstance` or `issubclass` behaviour is used.
 
-- `cmp` - a classmethod which defines the comparator logic used for ordering iterables of `TypeSpecificCallable`.
+- `cmp` - a classmethod which defines the comparator logic used for ordering of `TypeSpecificCallable` objects.
 
   ```python
   @classmethod
@@ -59,7 +60,7 @@ The `TypeSpecificCallable` defines the following methods:
 <br />
 <br />
 
-## Type projection objects
+## Type Projection Objects
 
 The `PrettyFormatter` class supports type projections through the `TypeProjection` class defined in the [type_projection.py](/src/pformat/type_projection.py) file. This is a subclass of [`TypeSpecificCallable`](#type-specific-callable-objects) which implies that instances of `TypeProjection` are identified by their `type` parameter.
 
@@ -69,7 +70,7 @@ When defining the projections for the `PrettyFormatter` class, you can instantia
 
 ```python
 int_proj = pf.TypeProjection(int, lambda i: str(i))
-float_proj = pf.projection(float, lambda f: int(f))
+float_proj = pf.make_projection(float, lambda f: int(f))
 ```
 
 > [!CAUTION]
@@ -78,41 +79,56 @@ float_proj = pf.projection(float, lambda f: int(f))
 <br />
 <br />
 
-## Type formatter objects
+## Type Formatter Objects
 
 The `PrettyFormatter` class cotnains an ordered collection of type specific formatters. When formatting an item, this collection is traversed and the first matching formatter is applied to the input item.
 
-The type specific formatters are instances of the `TypeFormatter` abstract class (defined in the [type_specific_formatters.py](/src/pformat/type_specific_formatters.py) file), which inherits from [`TypeSpecificCallable`](#type-specific-callable-objects) and therefore the identifier of this class is its `type` member, which is then used for matching the formatted item's type in the `has_valid_type` function.
+The type specific formatters are instances of the `TypeFormatter` abstract class (defined in the [type_formatter.py](/src/pformat/type_formatter.py) file), which inherits from [`TypeSpecificCallable`](#type-specific-callable-objects) and therefore the identifier of this class is its `type` member, which is then used for matching the formatted item's type in the `has_valid_type` function.
 
 <br />
 
-The `TypeFormatter` class is the base type used for type specific formatters and defines a common, abstract method:
+The `TypeFormatter` class is the base type used for type specific formatters and defines a common abstract method:
 
 ```python
 @abstractmethod
-__call__(self, obj: Any, depth: int = 0) -> str | Iterable[str]
+__call__(self, obj: Any, depth: int) -> str
 ```
 
-However, the abstract classes actually used as base types for concrete formatters are:
-
-- `NormalFormatter(TypeFormatter)` - the `__call__` abstract method should return an instance of `str`,
-- `MultilineFormatter(TypeFormatter)` - the `__call__` abstract method should return an instance of `Iterable[str]`, where each element in the returned collection should be a sepparate line.
-
-With that in mind, you can use these classes to create our own formatter classes.
-
-Alternatively, you can create custom formatter objects using the predefined functions:
+You can use this class as a base for you custom formatters. Alternatively, you can create custom formatter objects using the helper function:
 
 ```python
-normal_formatter(t: type, fmt_func: NormalTypeFormatterFunc) -> CustomNormalFormatter
-multiline_formatter(t: type, fmt_func: MultilineTypeFormatterFunc) -> CustomMultilineFormatter
+make_formatter(t: type, fmt_func: TypeFormatterFunc) -> CustomFormatter
 ```
 
-Where the `fmt_func` parameters are callables, the signatures of which match the signatures of the `__call__` abstract methods of their corresponding base classes.
+Where the `fmt_func` parameter is a callable, the signature of which matches the signature of the `__call__` abstract method of the `TypeFormatter` base class.
 
 <br />
 <br />
 
-## Text styling
+## PyPformat Magic Methods
+
+The type projections and/or formatters can be specified for the `PrettyFormatter` class using the formatting options (as described in [Format Options](/docs/usage.md#format-options)) or using dedicated magic methods.
+
+### Projections: `__pf_project__`
+
+If a type defines the `__pf_project__` magic method, it will be used directly when applying the type projections.
+
+> [!CAUTION]
+>
+> This magic method will override any type projections specified for the *projectable* type using the [Format Options](/docs/usage.md#format-options).
+
+### Formatting `__pf_format__`
+
+If a type defines the `__pf_format__` magic method, it will be used directly to format the given object.
+
+> [!CAUTION]
+>
+> This magic method will override any default/custom type formatters specified for the *formattable* type using the [Format Options](/docs/usage.md#format-options). Moreover, it will **not** apply any projections to the type, even if the `__pf_project__` method is defined for the type.
+
+<br />
+<br />
+
+## Text Styling
 
 > [!IMPORTANT]
 > `PyPformat` utilizes the [colored](https://dslackw.gitlab.io/colored/) package for text styling.

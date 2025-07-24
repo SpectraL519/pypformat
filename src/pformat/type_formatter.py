@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Callable
 
 from .type_specific_callable import TypeSpecifcCallable
@@ -8,7 +9,12 @@ TypeFormatterFunc = Callable[[Any, int], str]
 
 
 class TypeFormatter(TypeSpecifcCallable):
-    pass
+    def __init__(self, t: type):
+        super().__init__(t)
+
+    @abstractmethod
+    def __call__(self, obj: Any, depth: int) -> str:
+        return super().__call__(obj, depth)
 
 
 class CustomFormatter(TypeFormatter):
