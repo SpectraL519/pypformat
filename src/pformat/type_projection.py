@@ -19,5 +19,5 @@ class TypeProjection(TypeSpecifcCallable):
         return self.__proj_func(obj)
 
 
-def projection(t: type, proj_func: TypeProjectionFunc) -> TypeProjection:
+def make_projection(t: type, proj_func: TypeProjectionFunc) -> TypeProjection:
     return TypeProjection(t, proj_func)

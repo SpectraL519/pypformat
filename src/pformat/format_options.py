@@ -4,7 +4,7 @@ from typing import Any, Iterable, MutableSequence, Optional
 
 from .indentation_utility import IndentType
 from .text_style import TextStyle
-from .type_formatters import TypeFormatter
+from .type_formatter import TypeFormatter
 from .type_projection import TypeProjection
 
 

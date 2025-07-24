@@ -8,21 +8,15 @@ from .text_style import (
     rm_style_modifiers,
     strlen_no_style,
 )
-from .type_formatters import (
-    CustomMultilineFormatter,
-    CustomNormalFormatter,
-    MultilineFormatter,
-    MultilineTypeFormatterFunc,
-    NormalFormatter,
-    NormalTypeFormatterFunc,
+from .type_formatter import (
+    TypeFormatterFunc,
     TypeFormatter,
-    multiline_formatter,
-    normal_formatter,
+    make_formatter,
 )
 from .type_projection import (
     TypeProjection,
     TypeProjectionFunc,
     identity_projection_func,
-    projection,
+    make_projection,
 )
 from .type_specific_callable import TypeSpecifcCallable
