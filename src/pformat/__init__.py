@@ -9,8 +9,8 @@ from .text_style import (
     strlen_no_style,
 )
 from .type_formatter import (
-    TypeFormatterFunc,
     TypeFormatter,
+    TypeFormatterFunc,
     make_formatter,
 )
 from .type_projection import (

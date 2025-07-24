@@ -11,8 +11,8 @@ from pformat.indentation_utility import IndentType
 from pformat.pretty_formatter import (
     IterableFormatter,
     MappingFormatter,
-    PrettyFormatter,
     PFMagicMethod,
+    PrettyFormatter,
 )
 from pformat.text_style import TextStyle
 from pformat.type_formatter import make_formatter
