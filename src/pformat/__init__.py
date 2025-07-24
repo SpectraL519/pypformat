@@ -1,5 +1,6 @@
 from .format_options import FormatOptions
 from .indentation_utility import IndentMarker, IndentType
+from .named_types import NamedIterable, NamedMapping
 from .pretty_formatter import DefaultFormatter, IterableFormatter, MappingFormatter, PrettyFormatter
 from .text_style import (
     TextStyle,

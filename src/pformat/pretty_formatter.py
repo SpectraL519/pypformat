@@ -18,6 +18,7 @@ from types import MappingProxyType
 from typing import Any, MutableSequence, Optional, Union
 
 from .format_options import FormatOptions
+from .named_types import NamedIterable, NamedMapping
 from .text_style import TextStyle, TextStyleParam, strlen_no_style
 from .type_formatter import TypeFormatter
 from .type_projection import TypeProjection
@@ -69,7 +70,7 @@ class PrettyFormatter:
 
     def _format_impl(self, obj: Any, depth: int = 0) -> list[str]:
         if hasattr(obj, PFMagicMethod.FORMAT):
-            formatted_obj = getattr(obj, PFMagicMethod.FORMAT)()
+            formatted_obj = getattr(obj, PFMagicMethod.FORMAT)(self._options)
             if not isinstance(formatted_obj, str):
                 raise ValueError(
                     f"The `{PFMagicMethod.FORMAT}` method of an object `{repr(obj)}` of type `{type(obj)}` returned an object of type `{type(formatted_obj)}` - expected `str`"
@@ -138,7 +139,7 @@ class DefaultFormatter(TypeFormatter):
 
 
 class IterableFormatter(TypeFormatter):
-    _TYPES = Union[list, UserList, set, frozenset, tuple, range, deque, memoryview]
+    _TYPES = Union[list, UserList, set, frozenset, tuple, range, deque, memoryview, NamedIterable]
 
     def __init__(self, base_formatter: PrettyFormatter):
         self._base_formatter = base_formatter
@@ -189,12 +190,16 @@ class IterableFormatter(TypeFormatter):
             return "frozenset({", "})"
         if type(collection) in (tuple, range):
             return "(", ")"
+        if type(collection) is NamedIterable:
+            return collection.get_parens()
 
         return f"{type(collection).__name__}([", "])"
 
 
 class MappingFormatter(TypeFormatter):
-    _TYPES = Union[dict, defaultdict, UserDict, OrderedDict, ChainMap, MappingProxyType, Counter]
+    _TYPES = Union[
+        dict, defaultdict, UserDict, OrderedDict, ChainMap, MappingProxyType, Counter, NamedMapping
+    ]
 
     def __init__(self, base_formatter: PrettyFormatter):
         self._base_formatter = base_formatter
@@ -249,5 +254,7 @@ class MappingFormatter(TypeFormatter):
             return f"defaultdict({mapping.default_factory}, {{", "})"
         if isinstance(mapping, MappingProxyType):
             return "mappingproxy({", "})"
+        if type(mapping) is NamedMapping:
+            return mapping.get_parens()
 
         return f"{type(mapping).__name__}({{", "})"
