@@ -73,7 +73,8 @@ class PrettyFormatter:
             formatted_obj = getattr(obj, PFMagicMethod.FORMAT)(self._options)
             if not isinstance(formatted_obj, str):
                 raise ValueError(
-                    f"The `{PFMagicMethod.FORMAT}` method of an object `{repr(obj)}` of type `{type(obj)}` returned an object of type `{type(formatted_obj)}` - expected `str`"
+                    f"The `{PFMagicMethod.FORMAT}` method of an object `{repr(obj)}` of type `{type(obj)}` returned "
+                    f"an object of type `{type(formatted_obj)}` - expected `str`"
                 )
             return formatted_obj
 

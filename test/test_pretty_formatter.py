@@ -8,6 +8,7 @@ from colored import Back, Fore, Style
 
 from pformat.format_options import FormatOptions
 from pformat.indentation_utility import IndentType
+from pformat.named_types import NamedMapping
 from pformat.pretty_formatter import (
     IterableFormatter,
     MappingFormatter,
@@ -61,7 +62,11 @@ def gen_mapping(data: Iterable, t: type = dict, nested: bool = False) -> Mapping
     if nested:
         mapping_data[NESTED_MAPPING_KEY] = gen_mapping(data, t, nested=False)
 
-    return t(str, mapping_data) if issubclass(t, defaultdict) else t(mapping_data)
+    if issubclass(t, defaultdict):
+        return t(str, mapping_data)
+    if issubclass(t, NamedMapping):
+        return t("DummyNamedMapping", mapping_data)
+    return t(mapping_data)
 
 
 class TestPrettyFormatterSimple:
@@ -424,11 +429,11 @@ class TestPFMagicMethodsUsage:
                 self.x = x
                 self.y = y
 
-            def __pf_format__(self) -> str:
+            def __pf_format__(self, options) -> str:
                 return f"Point(x={self.x}, y={self.y})"
 
         p = FormattablePoint(3, 14)
-        assert self.sut(p) == p.__pf_format__()
+        assert self.sut(p) == p.__pf_format__(self.sut._options)
 
     def test_incorrectly_formattable_type(self):
         class IncorrectlyFormattablePoint:
@@ -436,7 +441,7 @@ class TestPFMagicMethodsUsage:
                 self.x = x
                 self.y = y
 
-            def __pf_format__(self) -> str:
+            def __pf_format__(self, options) -> str:
                 return (self.x, self.y)  # return a non-str object
 
         p = IncorrectlyFormattablePoint(3, 14)
@@ -445,5 +450,6 @@ class TestPFMagicMethodsUsage:
 
         assert (
             str(err.value)
-            == f"The `{PFMagicMethod.FORMAT}` method of an object `{repr(p)}` of type `{type(p)}` returned an object of type `{type(p.__pf_format__())}` - expected `str`"
+            == f"The `{PFMagicMethod.FORMAT}` method of an object `{repr(p)}` of type `{type(p)}` returned "
+            f"an object of type `{type(p.__pf_format__(self.sut._options))}` - expected `str`"
         )
