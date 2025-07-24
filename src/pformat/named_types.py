@@ -31,5 +31,5 @@ class NamedMapping(Mapping):
     def __len__(self) -> int:
         return len(self.mapping)
 
-    def get_parens(self):
+    def get_parens(self) -> Tuple[str, str]:
         return self.parens or (f"{self.name}({{", "})")
