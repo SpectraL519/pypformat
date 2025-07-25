@@ -1,11 +1,38 @@
-.PHONY: tests clean_tests coverage clean_cov build clean_build ruff clean_ruff clean_all install upload
+PY := python3
+PYM := $(PY) -m
+
+.PHONY: \
+	prepare-venv \
+	clean-venv \
+	tests-simple \
+	tests-tox \
+	clean-tests \
+	clean-cov \
+	build \
+	clean-build \
+	ruff \
+	clean-ruff \
+	clean-all \
+	install \
+	upload
+
+prepare-venv:
+	$(PYM) venv venv && \
+	. venv/bin/activate && \
+	pip install -r requirements-dev.txt
+
+clean-venv:
+	rm -rf venv/
+
+source-venv:
+	. venv/bin/activate
 
 tests-simple:
-	pytest test/
+	$(PYM) pytest test/
 
 # tox will generate the coverage report
 tests-tox:
-	tox
+	$(PYM) tox
 
 clean-tests:
 	rm -rf .pytest_cache/ .tox/
@@ -14,7 +41,8 @@ clean-cov:
 	rm -rf .coverage*
 
 build:
-	python -m build
+	$(PYM) build
+	$(PY) scripts/preprocess_md_doc.py
 
 clean-build:
 	rm -rf build/ dist/ *.egg-info README_pypi.md
@@ -25,14 +53,13 @@ ruff:
 clean-ruff:
 	rm -rf .ruff_cache/
 
-clean-all: clean-tests clean-cov clean-build clean-ruff
+clean-all: clean-venv clean-tests clean-cov clean-build clean-ruff
 
 install:
-	pip uninstall -y pypformat || true
+	$(PYM) pip uninstall -y pypformat || true
 	$(MAKE) clean-build
-	python -m build
-	pip install .
+	$(PYM) build
+	$(PYM) install .
 
 upload: build
-	python scripts/preprocess_md_doc.py
-	python -m twine upload dist/*
+	$(PYM) twine upload dist/*
