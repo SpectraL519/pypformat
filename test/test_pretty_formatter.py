@@ -8,10 +8,16 @@ from colored import Back, Fore, Style
 
 from pformat.format_options import FormatOptions
 from pformat.indentation_utility import IndentType
-from pformat.pretty_formatter import IterableFormatter, MappingFormatter, PrettyFormatter
+from pformat.named_types import NamedMapping
+from pformat.pretty_formatter import (
+    IterableFormatter,
+    MappingFormatter,
+    PFMagicMethod,
+    PrettyFormatter,
+)
 from pformat.text_style import TextStyle
-from pformat.type_formatters import normal_formatter
-from pformat.type_projection import projection
+from pformat.type_formatter import make_formatter
+from pformat.type_projection import make_projection
 
 # TODO: figure out how to set the width parameter value dynamically for compact tests
 
@@ -56,7 +62,11 @@ def gen_mapping(data: Iterable, t: type = dict, nested: bool = False) -> Mapping
     if nested:
         mapping_data[NESTED_MAPPING_KEY] = gen_mapping(data, t, nested=False)
 
-    return t(str, mapping_data) if issubclass(t, defaultdict) else t(mapping_data)
+    if issubclass(t, defaultdict):
+        return t(str, mapping_data)
+    if issubclass(t, NamedMapping):
+        return t("DummyNamedMapping", mapping_data)
+    return t(mapping_data)
 
 
 class TestPrettyFormatterSimple:
@@ -275,8 +285,8 @@ class TestPrettyFormatterStyleEntireText:
 
 class TestPrettyFormatterProjections:
     def test_format_projected_elements(self):
-        float_proj = projection(float, lambda f: int(f) + 1)
-        str_proj = projection(str, lambda s: [ord(c) for c in s])
+        float_proj = make_projection(float, lambda f: int(f) + 1)
+        str_proj = make_projection(str, lambda s: [ord(c) for c in s])
 
         sut = PrettyFormatter.new(
             compact=True, width=INT_UNBOUND, projections=(float_proj, str_proj)
@@ -313,7 +323,7 @@ class TestPrettyFormatterCustomFormatters:
 
         fmt_func = lambda x, depth: str(x)
 
-        sut = PrettyFormatter.new(formatters=[normal_formatter(t, fmt_func) for t in base_types])
+        sut = PrettyFormatter.new(formatters=[make_formatter(t, fmt_func) for t in base_types])
 
         assert all(sut(value) == fmt_func(value, depth=0) for t in concrete_types if (value := t()))
 
@@ -325,7 +335,7 @@ class TestPrettyFormatterCustomFormatters:
         custom_types = [int, float, DummyType]
         fmt_func = lambda x, depth: str(x)
 
-        sut = PrettyFormatter.new(formatters=[normal_formatter(t, fmt_func) for t in custom_types])
+        sut = PrettyFormatter.new(formatters=[make_formatter(t, fmt_func) for t in custom_types])
 
         assert all(sut(value) == fmt_func(value, depth=0) for t in custom_types if (value := t()))
 
@@ -337,14 +347,14 @@ class TestPrettyFormatterCustomFormatters:
 
 class TestIterableFormatter:
     def test_init_default(self):
-        fmt = PrettyFormatter.new()
-        sut = IterableFormatter(fmt)
+        base = PrettyFormatter.new()
+        sut = IterableFormatter(base)
 
         assert sut.type is Iterable
 
     def test_init_with_strict_type_matching(self):
-        fmt = PrettyFormatter.new(exact_type_matching=True)
-        sut = IterableFormatter(fmt)
+        base = PrettyFormatter.new(exact_type_matching=True)
+        sut = IterableFormatter(base)
 
         assert sut.type is IterableFormatter._TYPES
 
@@ -367,14 +377,14 @@ class TestIterableFormatter:
 
 class TestMappingFormatter:
     def test_init_default(self):
-        fmt = PrettyFormatter.new()
-        sut = MappingFormatter(fmt)
+        base = PrettyFormatter.new()
+        sut = MappingFormatter(base)
 
         assert sut.type is Mapping
 
     def test_init_with_strict_type_matching(self):
-        fmt = PrettyFormatter.new(exact_type_matching=True)
-        sut = MappingFormatter(fmt)
+        base = PrettyFormatter.new(exact_type_matching=True)
+        sut = MappingFormatter(base)
 
         assert sut.type is MappingFormatter._TYPES
 
@@ -394,3 +404,52 @@ class TestMappingFormatter:
             pass
 
         assert MappingFormatter.get_parens(DummyMapping()) == (f"{DummyMapping.__name__}({{", "})")
+
+
+class TestPFMagicMethodsUsage:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.sut = PrettyFormatter.new()
+
+    def test_projectable_type(self):
+        class ProjectablePoint:
+            def __init__(self, x: int, y: int):
+                self.x = x
+                self.y = y
+
+            def __pf_project__(self):
+                return (self.x, self.y)
+
+        p = ProjectablePoint(3, 14)
+        assert self.sut(p) == self.sut(p.__pf_project__())
+
+    def test_formattable_type(self):
+        class FormattablePoint:
+            def __init__(self, x: int, y: int):
+                self.x = x
+                self.y = y
+
+            def __pf_format__(self, options) -> str:
+                return f"Point(x={self.x}, y={self.y})"
+
+        p = FormattablePoint(3, 14)
+        assert self.sut(p) == p.__pf_format__(self.sut._options)
+
+    def test_incorrectly_formattable_type(self):
+        class IncorrectlyFormattablePoint:
+            def __init__(self, x: int, y: int):
+                self.x = x
+                self.y = y
+
+            def __pf_format__(self, options) -> str:
+                return (self.x, self.y)  # return a non-str object
+
+        p = IncorrectlyFormattablePoint(3, 14)
+        with pytest.raises(ValueError) as err:
+            self.sut(p)
+
+        assert (
+            str(err.value)
+            == f"The `{PFMagicMethod.FORMAT}` method of an object `{repr(p)}` of type `{type(p)}` returned "
+            f"an object of type `{type(p.__pf_format__(self.sut._options))}` - expected `str`"
+        )

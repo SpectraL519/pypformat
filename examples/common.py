@@ -53,8 +53,8 @@ FMT_CONFIGS = [
             indent_type=pf.IndentType.BROKEN_BAR(style=Fore.grey_37),
             text_style=Fore.magenta,
             projections=(
-                pf.projection(float, lambda f: int(f)),
-                pf.projection(bytes, lambda b: bytearray(b)),
+                pf.make_projection(float, lambda f: int(f)),
+                pf.make_projection(bytes, lambda b: bytearray(b)),
             ),
         ),
     ),
@@ -65,9 +65,9 @@ FMT_CONFIGS = [
             text_style=Fore.cyan,
             style_entire_text=True,
             formatters=[
-                pf.normal_formatter(int, lambda i, _: f"{i:.1f}"),
-                pf.normal_formatter(float, lambda f, _: f"{f:.2f}"),
-                pf.normal_formatter(str, lambda s, _: f's"{s}"'),
+                pf.make_formatter(int, lambda i, _: f"{i:.1f}"),
+                pf.make_formatter(float, lambda f, _: f"{f:.2f}"),
+                pf.make_formatter(str, lambda s, _: f's"{s}"'),
             ],
         ),
     ),

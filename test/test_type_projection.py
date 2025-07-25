@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from pformat.type_projection import TypeProjection, projection
+from pformat.type_projection import TypeProjection, make_projection
 
 from .conftest import assert_does_not_throw, gen_derived_type
 
@@ -120,6 +120,6 @@ def test_projection_builder(t: type):
     value = TYPE_VALS[t]
     proj = TYPE_PROJECTIONS[t]
 
-    sut = projection(t, proj)
+    sut = make_projection(t, proj)
     assert sut == TypeProjection(t, proj)
     assert sut(value) == proj(value)

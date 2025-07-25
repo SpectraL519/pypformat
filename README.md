@@ -89,8 +89,8 @@ The example below demostrates the difference in the **default** outputs produced
 > [!IMPORTANT]
 >
 > - The minimum (tested) python version required to use the `PyPformat` package is **3.9**.
-> - The complete functionality of the `PyPformat` package (including all format configuration options) is described in the [PyPformat - Usage](/docs/usage.md) document.
-> - While the `PyPformat` package is already quite versatile and customizable, its development is ongoing. A detailed list of the planned features/improvements can be found in the [PyPformat - TODO](/docs/todo.md) document.
+> - The complete functionality of the `PyPformat` package (including all format configuration options) is described in [PyPformat - Usage](/docs/usage.md) and [PyPformat - Utility](/docs/utility.md) documents.
+> - While the `PyPformat` package is already quite versatile and customizable, its development is ongoing. A detailed list of the planned features/improvements can be found in the [PyPformat - TODO](/docs/todo.md) document (please note that this list is not fixed and may be expanded).
 
 <br />
 <br />
@@ -106,7 +106,7 @@ pip install pypformat
 <br />
 <br />
 
-## For developers
+## For Developers
 
 The [PyPformat - Dev notes](/docs/dev_notes.md) document contains the information about project development, testing and formatting.
 
