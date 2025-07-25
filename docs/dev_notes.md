@@ -3,7 +3,7 @@
 - [Dev environment](#dev-environment)
 - [Formatting and linting](#formatting-and-linting)
 - [Testing](#testing)
-- [Other]()
+- [Other](#other)
 
 <br />
 <br />
