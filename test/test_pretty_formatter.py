@@ -8,7 +8,7 @@ from colored import Back, Fore, Style
 
 from pformat.format_options import FormatOptions
 from pformat.indentation_utility import IndentType
-from pformat.named_types import NamedMapping, NamedIterable
+from pformat.named_types import NamedIterable, NamedMapping
 from pformat.pretty_formatter import (
     IterableFormatter,
     MappingFormatter,

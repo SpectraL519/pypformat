@@ -48,7 +48,7 @@ clean-build:
 	rm -rf build/ dist/ *.egg-info README_pypi.md
 
 ruff:
-	ruff format && ruff check --fix
+	$(PYM) ruff format && ruff check --fix
 
 clean-ruff:
 	rm -rf .ruff_cache/
