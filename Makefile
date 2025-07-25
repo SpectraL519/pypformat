@@ -57,8 +57,6 @@ clean-all: clean-venv clean-tests clean-cov clean-build clean-ruff
 
 install:
 	$(PYM) pip uninstall -y pypformat || true
-	$(MAKE) clean-build
-	$(PYM) build
 	$(PYM) install .
 
 upload: build
