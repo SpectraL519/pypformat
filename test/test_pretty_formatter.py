@@ -8,7 +8,7 @@ from colored import Back, Fore, Style
 
 from pformat.format_options import FormatOptions
 from pformat.indentation_utility import IndentType
-from pformat.named_types import NamedMapping
+from pformat.named_types import NamedIterable, NamedMapping
 from pformat.pretty_formatter import (
     IterableFormatter,
     MappingFormatter,
@@ -49,12 +49,18 @@ INDENT_TYPE_VALS = [
     gen(width=w)
     for gen, w in product([IndentType.NONE, IndentType.DOTS, IndentType.LINE], INDENT_WIDTH_VALS)
 ]
-RECOGNIZED_ITERABLE_TYPES = [list, UserList, set, frozenset, tuple, deque]
+RECOGNIZED_ITERABLE_TYPES = [list, UserList, set, frozenset, tuple, deque, NamedIterable]
 RECOGNIZED_NHASH_ITERABLE_TYPES = [list, UserList, tuple, deque]
 RECOGNIZED_MAPPING_TYPES = MappingFormatter._TYPES.__args__
 
 INT_UNBOUND = 10e9
 NESTED_MAPPING_KEY = "nested_elem"
+
+
+def gen_iterable(data: Iterable, t: type = list) -> Iterable:
+    if issubclass(t, NamedIterable):
+        return t("DummyNamedIterable", data)
+    return t(data)
 
 
 def gen_mapping(data: Iterable, t: type = dict, nested: bool = False) -> Mapping:
@@ -84,7 +90,7 @@ class TestPrettyFormatterSimple:
 
     @pytest.mark.parametrize("iterable_type", RECOGNIZED_ITERABLE_TYPES)
     def test_format_iterable(self, sut: PrettyFormatter, iterable_type: type):
-        collection = iterable_type(SIMPLE_HASHABLE_DATA)
+        collection = gen_iterable(SIMPLE_HASHABLE_DATA, iterable_type)
         opening, closing = IterableFormatter.get_parens(collection)
 
         expected_output = "\n".join(
@@ -175,7 +181,7 @@ class TestPrettyFormatterCompact:
 
     @pytest.mark.parametrize("iterable_type", RECOGNIZED_ITERABLE_TYPES)
     def test_format_iterable(self, sut: PrettyFormatter, iterable_type: type):
-        collection = iterable_type(SIMPLE_HASHABLE_DATA)
+        collection = gen_iterable(SIMPLE_HASHABLE_DATA, iterable_type)
         opening, closing = IterableFormatter.get_parens(collection)
 
         expected_output = opening + ", ".join(repr(value) for value in collection) + closing

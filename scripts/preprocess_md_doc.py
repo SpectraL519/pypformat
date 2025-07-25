@@ -26,7 +26,7 @@ def parse_args():
         "-o",
         "--output-file",
         type=Path,
-        default="README_preprocessed.md",
+        default="README_pypi.md",
         help="Path to the output README file.",
     )
     parser.add_argument(
