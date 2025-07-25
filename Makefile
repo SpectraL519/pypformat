@@ -41,8 +41,8 @@ clean-cov:
 	rm -rf .coverage*
 
 build:
-	$(PYM) build
 	$(PY) scripts/preprocess_md_doc.py
+	$(PYM) build
 
 clean-build:
 	rm -rf build/ dist/ *.egg-info README_pypi.md
