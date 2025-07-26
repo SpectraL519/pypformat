@@ -3,9 +3,11 @@ import re
 from pathlib import Path
 
 
-def preprocess_md_doc(input_file: Path, output_file: Path, repo_url: str):
+def process_md_doc(input_file: Path, output_file: Path, version: str):
     with open(input_file, "r", encoding="utf-8") as f:
         content = f.read()
+
+    repo_url = f"https://github.com/SpectraL519/pypformat/blob/{version}"
 
     updated_content = re.sub(
         r"\[([^\]]+)\]\((?!http)(.*?)\)",
@@ -30,14 +32,13 @@ def parse_args():
         help="Path to the output README file.",
     )
     parser.add_argument(
-        "-r",
-        "--repo-url",
+        "-v",
+        "--version",
         type=str,
-        default="https://github.com/SpectraL519/repo/blob/master",
         help="Base URL of the repository.",
     )
     return vars(parser.parse_args())
 
 
 if __name__ == "__main__":
-    preprocess_md_doc(**parse_args())
+    process_md_doc(**parse_args())
