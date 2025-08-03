@@ -171,7 +171,7 @@ class IterableFormatter(TypeFormatter):
         values = list()
         for value in collection:
             v_fmt = self._base_formatter._format_impl(value, depth).split("\n")
-            v_fmt[-1] = f"{v_fmt[-1]},"
+            v_fmt[-1] += ","
             values.extend(v_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
@@ -236,7 +236,7 @@ class MappingFormatter(TypeFormatter):
             key_fmt = self._base_formatter(key)
             item_values_fmt = self._base_formatter._format_impl(value, depth).split("\n")
             item_values_fmt[0] = f"{key_fmt}: {item_values_fmt[0]}"
-            item_values_fmt[-1] = f"{item_values_fmt[-1]},"
+            item_values_fmt[-1] += ","
             values.extend(item_values_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)

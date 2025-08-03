@@ -5,6 +5,11 @@ For these types the default (repr) formatter is used.
 
 from common import FMT_CONFIGS, display
 
+
+class MyClass:
+    pass
+
+
 SIMPLE_DATA = (
     123,
     3.14,

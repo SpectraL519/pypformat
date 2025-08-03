@@ -1,5 +1,17 @@
 import sys
+from collections import (
+    ChainMap,
+    Counter,
+    OrderedDict,
+    UserDict,
+    UserList,
+    defaultdict,
+    deque,
+)
+from collections.abc import Iterable, Mapping
 from functools import cmp_to_key
+from itertools import product
+from types import GenericAlias
 from typing import Any, Union
 
 import pytest
@@ -20,8 +32,8 @@ def test_is_union():
     assert not is_union(int)
 
 
-TYPES = (int, float, str, bytes, list, dict)
-TYPE_IDS = [f"t={t.__name__}" for t in TYPES]
+SIMPLE_TYPES = (int, float, str, bytes, list, dict)
+SIMPLE_TYPE_IDS = [f"t={t.__name__}" for t in SIMPLE_TYPES]
 
 if sys.version_info >= (3, 10):
     UNION_TYPE = int | float | str | bytes | list | dict
@@ -38,7 +50,7 @@ class DummyType2:
 
 
 class TestHasValidType:
-    @pytest.fixture(params=TYPES, ids=TYPE_IDS)
+    @pytest.fixture(params=SIMPLE_TYPES, ids=SIMPLE_TYPE_IDS)
     def set_type_params(self, request: pytest.FixtureRequest):
         self.type = request.param
         self.derived_type = gen_derived_type(self.type)
@@ -48,36 +60,77 @@ class TestHasValidType:
     @pytest.mark.parametrize(
         "exact_match", EXACT_MATCH_VALS, ids=[f"{exact_match=}" for exact_match in EXACT_MATCH_VALS]
     )
-    def test_has_valid_type_with_any_type(self, set_type_params, exact_match: bool):
+    def test_any_type(self, set_type_params, exact_match: bool):
         assert has_valid_type(self.type(), Any, exact_match=exact_match)
         assert has_valid_type(self.derived_type(), Any, exact_match=exact_match)
         assert has_valid_type(DummyType1(), Any, exact_match=exact_match)
 
-    def test_has_valid_type_with_concrete_type(self, set_type_params):
+    def test_concrete_type(self, set_type_params):
         assert has_valid_type(self.type(), self.type)
         assert has_valid_type(self.derived_type(), self.type)
         assert not has_valid_type(DummyType1(), self.type)
 
-    def test_has_valid_type_with_concrete_type_exact_match(self, set_type_params):
+    def test_with_concrete_type_exact_match(self, set_type_params):
         assert has_valid_type(self.type(), self.type, exact_match=True)
         assert not has_valid_type(self.derived_type(), self.type, exact_match=True)
         assert not has_valid_type(DummyType1(), self.type, exact_match=True)
 
-    def test_has_valid_type_with_union_type(self):
-        assert all(has_valid_type(t(), UNION_TYPE) for t in TYPES)
-        assert all(has_valid_type(gen_derived_type(t)(), UNION_TYPE) for t in TYPES)
+    def test_with_union_type(self):
+        assert all(has_valid_type(t(), UNION_TYPE) for t in SIMPLE_TYPES)
+        assert all(has_valid_type(gen_derived_type(t)(), UNION_TYPE) for t in SIMPLE_TYPES)
         assert not has_valid_type(DummyType1(), UNION_TYPE)
 
-    def test_has_valid_type_with_union_type_exact_match(self):
-        assert all(has_valid_type(t(), UNION_TYPE, exact_match=True) for t in TYPES)
+    def test_with_union_type_exact_match(self):
+        assert all(has_valid_type(t(), UNION_TYPE, exact_match=True) for t in SIMPLE_TYPES)
         assert all(
-            not has_valid_type(gen_derived_type(t)(), UNION_TYPE, exact_match=True) for t in TYPES
+            not has_valid_type(gen_derived_type(t)(), UNION_TYPE, exact_match=True)
+            for t in SIMPLE_TYPES
         )
         assert not has_valid_type(DummyType1(), UNION_TYPE, exact_match=True)
 
+    def test_type_or_generic_alias_type(self):
+        types = [
+            int,
+            float,
+            str,
+            list,
+            tuple,
+            set,
+            dict,
+        ]
+        concrete_generic_aliases = [
+            list[int],
+            UserList[int],
+            set[int],
+            frozenset[int],
+            tuple[int],
+            deque[int],
+            dict[int, int],
+            defaultdict[int, int],
+            UserDict[int, int],
+            OrderedDict[int, int],
+            ChainMap[int, int],
+            Counter[int, int],
+        ]
+        generic_aliases = [
+            *concrete_generic_aliases,
+            Iterable[int],
+            Mapping[int, int],
+        ]
+
+        assert all(has_valid_type(t(), t) for t in types)
+        assert all(has_valid_type(t(), t) for t in concrete_generic_aliases)
+
+        type_collections = [types, generic_aliases]
+        for T1, T2 in product(type_collections, type_collections):
+            assert not any(has_valid_type(t1, t2) for t1 in T1 for t2 in T2)
+
+        assert all(has_valid_type(t, type) for t in types)
+        assert all(has_valid_type(t, GenericAlias) for t in generic_aliases)
+
 
 class TestTypeCmp:
-    @pytest.fixture(params=TYPES, ids=TYPE_IDS)
+    @pytest.fixture(params=SIMPLE_TYPES, ids=SIMPLE_TYPE_IDS)
     def set_type(self, request: pytest.FixtureRequest):
         self.type = request.param
 
