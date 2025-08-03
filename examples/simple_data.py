@@ -3,8 +3,6 @@ This example shows how the simpla data types are formatted.
 For these types the default (repr) formatter is used.
 """
 
-from collections.abc import Iterable, Mapping
-
 from common import FMT_CONFIGS, display
 
 
@@ -18,12 +16,6 @@ SIMPLE_DATA = (
     "string",
     b"bytes",
     bytearray([1, 2, 3]),
-    int,
-    MyClass,
-    list[int],
-    tuple[int, float, str],
-    Iterable[int],
-    Mapping[int],
 )
 
 
