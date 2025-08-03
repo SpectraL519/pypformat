@@ -63,12 +63,14 @@ class PrettyFormatter:
         )
 
     def __call__(self, obj: Any, depth: int = 0) -> str:
+        # import pdb; pdb.set_trace()
         return self._format_impl(obj, depth)
 
     def format(self, obj: Any, depth: int = 0) -> str:
         return self(obj, depth)
 
     def _format_impl(self, obj: Any, depth: int = 0) -> list[str]:
+        print(f">>> _format_impl({obj = })")
         if hasattr(obj, PFMagicMethod.FORMAT):
             formatted_obj = getattr(obj, PFMagicMethod.FORMAT)(self._options)
             if not isinstance(formatted_obj, str):
@@ -82,6 +84,7 @@ class PrettyFormatter:
 
         for formatter in self._formatters:
             if formatter.has_valid_type(projected_obj, self._options.exact_type_matching):
+                print(f">>> {type(projected_obj) = }, {formatter.type = }")
                 return formatter(projected_obj, depth)
 
         return self._default_formatter(projected_obj, depth)
@@ -95,6 +98,7 @@ class PrettyFormatter:
 
         for projection in self._options.projections:
             if projection.has_valid_type(obj, exact_match=self._options.exact_type_matching):
+                print(f">>> {type(obj) = }, {projection.type = }")
                 return projection(obj)
 
         return obj
@@ -171,7 +175,7 @@ class IterableFormatter(TypeFormatter):
         values = list()
         for value in collection:
             v_fmt = self._base_formatter._format_impl(value, depth).split("\n")
-            v_fmt[-1] = f"{v_fmt[-1]},"
+            v_fmt[-1] += ","
             values.extend(v_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
@@ -236,7 +240,7 @@ class MappingFormatter(TypeFormatter):
             key_fmt = self._base_formatter(key)
             item_values_fmt = self._base_formatter._format_impl(value, depth).split("\n")
             item_values_fmt[0] = f"{key_fmt}: {item_values_fmt[0]}"
-            item_values_fmt[-1] = f"{item_values_fmt[-1]},"
+            item_values_fmt[-1] += ","
             values.extend(item_values_fmt)
 
         values_fmt = self._options.indent_type.add_to_each(values)
