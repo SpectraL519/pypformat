@@ -14,7 +14,7 @@ from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import cmp_to_key
-from types import MappingProxyType
+from types import GenericAlias, MappingProxyType
 from typing import Any, MutableSequence, Optional, Union
 
 from .format_options import FormatOptions
@@ -63,7 +63,6 @@ class PrettyFormatter:
         )
 
     def __call__(self, obj: Any, depth: int = 0) -> str:
-        # import pdb; pdb.set_trace()
         return self._format_impl(obj, depth)
 
     def format(self, obj: Any, depth: int = 0) -> str:
@@ -123,6 +122,8 @@ class PrettyFormatter:
 
     def __predefined_formatters(self) -> list[TypeFormatter]:
         return [
+            DefaultFormatter(type, self._options),
+            DefaultFormatter(GenericAlias, self._options),
             DefaultFormatter(Union[str, UserString], self._options),
             DefaultFormatter(bytes, self._options),
             DefaultFormatter(bytearray, self._options),

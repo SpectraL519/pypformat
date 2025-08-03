@@ -3,7 +3,6 @@ This example shows how the simpla data types are formatted.
 For these types the default (repr) formatter is used.
 """
 
-from collections.abc import Mapping
 
 from common import FMT_CONFIGS, display
 
@@ -20,15 +19,14 @@ SIMPLE_DATA = (
     # bytearray([1, 2, 3]),
     # int,
     # MyClass,
-    # list[int],
+    list[int],
     # tuple[int, float, str],
     # Iterable[int],
-    Mapping[int]
+    # Mapping[int]
 )
 
 
 if __name__ == "__main__":
     for item in SIMPLE_DATA:
         print("-" * 50)
-        # import pdb; pdb.set_trace()
         display(item, FMT_CONFIGS)

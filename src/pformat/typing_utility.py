@@ -1,6 +1,4 @@
 import sys
-from dataclasses import dataclass
-from types import GenericAlias
 from typing import Any, Union
 
 if sys.version_info >= (3, 10):
@@ -11,15 +9,21 @@ else:
     _union_type = None
 
 
-def is_type(obj: Any) -> bool:
-    return isinstance(obj, type) or isinstance(obj, GenericAlias)
-
-
 def is_union(t: type) -> bool:
     return (
         (_union_type is not None and isinstance(t, _union_type))  # `|` union (Python 3.10+)
         or (hasattr(t, "__origin__") and t.__origin__ is Union)  # typing.Union
     )
+
+
+def has_valid_type(obj: Any, t: type, exact_match: bool = False) -> bool:
+    if t is Any:
+        return True
+
+    if is_union(t):
+        return any(has_valid_type(obj, _t, exact_match) for _t in t.__args__)
+
+    return type(obj) is t if exact_match else isinstance(obj, t)
 
 
 BASE_TYPES = (object, Any)
@@ -38,29 +42,9 @@ def is_subclass(t1: type, t2: type) -> bool:
     if is_union(t2):
         return any(issubclass(t1, t) for t in t2.__args__)
 
-    try:
-        return issubclass(t1, t2)
-    except TypeError:
-        return False
+    return issubclass(t1, t2)
 
 
-def has_valid_type(obj: Any, t: type, exact_match: bool = False) -> bool:
-    if is_type(obj) and not is_type(t):
-        return False
-
-    if t in BASE_TYPES:
-        return True
-
-    if is_union(t):
-        return any(has_valid_type(obj, arg, exact_match) for arg in t.__args__)
-
-    if exact_match:
-        return type(obj) is t
-
-    return is_subclass(type(obj), t)
-
-
-@dataclass(frozen=True)
 class Ordering:
     LT: int = -1
     EQ: int = 0

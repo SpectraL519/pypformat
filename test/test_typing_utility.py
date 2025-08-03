@@ -140,20 +140,43 @@ class TestHasValidType:
             set,
             dict,
         ]
-        generic_aliases = [
+        concrete_generic_aliases = [
             list[int],
+            UserList[int],
+            set[int],
+            frozenset[int],
+            tuple[int],
+            deque[int],
+            dict[int, int],
+            defaultdict[int, int],
+            UserDict[int, int],
+            OrderedDict[int, int],
+            ChainMap[int, int],
+            Counter[int, int],
+        ]
+        generic_aliases = [
+            *concrete_generic_aliases,
             Iterable[int],
-            dict[int, str],
-            Mapping[int, str],
+            Mapping[int, int],
         ]
 
-        type_collections = [types, generic_aliases]
+        assert all(has_valid_type(t(), t) for t in types)
+        assert all(has_valid_type(t(), t) for t in concrete_generic_aliases)
 
+        type_collections = [types, generic_aliases]
         for T1, T2 in product(type_collections, type_collections):
+            # for t1 in T1:
+            #     for t2 in T2:
+            #         assert not has_valid_type(t1, t2)
             assert not any(has_valid_type(t1, t2) for t1 in T1 for t2 in T2)
 
         assert all(has_valid_type(t, type) for t in types)
-        assert all(has_valid_type(t, GenericAlias) for t in generic_aliases)
+        # assert all(has_valid_type(t, GenericAlias) for t in generic_aliases)
+        for t in generic_aliases:
+            import pdb
+
+            pdb.set_trace()
+            assert has_valid_type(t, GenericAlias)
 
 
 class TestTypeCmp:
