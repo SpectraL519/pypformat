@@ -11,13 +11,12 @@ from collections import (
 from collections.abc import Iterable, Mapping
 from functools import cmp_to_key
 from itertools import product
-from types import GenericAlias, MappingProxyType
+from types import GenericAlias
 from typing import Any, Union
 
 import pytest
 
-from pformat.named_types import NamedIterable, NamedMapping
-from pformat.typing_utility import Ordering, has_valid_type, is_type, is_union, type_cmp
+from pformat.typing_utility import Ordering, has_valid_type, is_union, type_cmp
 
 from .conftest import gen_derived_type
 
@@ -48,47 +47,6 @@ class DummyType1:
 
 class DummyType2:
     pass
-
-
-class TestIsType:
-    def test_simple_types(self):
-        assert all(is_type(t) for t in SIMPLE_TYPES)
-
-    def test_simple_type_instances(self):
-        assert not any(is_type(t()) for t in SIMPLE_TYPES)
-
-    def test_generic_aliases(self):
-        assert all(
-            is_type(t[v])
-            for t in [list, UserList, set, frozenset, tuple, deque, NamedIterable]
-            for v in SIMPLE_TYPES
-        )
-        assert all(
-            is_type(t[v])
-            for t in [
-                dict,
-                defaultdict,
-                UserDict,
-                OrderedDict,
-                ChainMap,
-                MappingProxyType,
-                Counter,
-                NamedMapping,
-            ]
-            for v in SIMPLE_TYPES
-        )
-
-    def test_generic_alias_instances(self):
-        assert not any(
-            is_type(t[v]())
-            for t in [list, UserList, set, frozenset, tuple, deque]
-            for v in SIMPLE_TYPES
-        )
-        assert not any(
-            is_type(t[v, v]())
-            for t in [dict, defaultdict, UserDict, OrderedDict, ChainMap, Counter]
-            for v in SIMPLE_TYPES
-        )
 
 
 class TestHasValidType:

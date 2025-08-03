@@ -13,10 +13,6 @@ else:
 BASE_TYPES = (object, Any)
 
 
-def is_type(obj: Any) -> bool:
-    return isinstance(obj, type) or isinstance(obj, GenericAlias)
-
-
 def unwrap_origin(t: type) -> type:
     return get_origin(t) or t
 

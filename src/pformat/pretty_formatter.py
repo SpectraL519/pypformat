@@ -69,7 +69,6 @@ class PrettyFormatter:
         return self(obj, depth)
 
     def _format_impl(self, obj: Any, depth: int = 0) -> list[str]:
-        print(f">>> _format_impl({obj = })")
         if hasattr(obj, PFMagicMethod.FORMAT):
             formatted_obj = getattr(obj, PFMagicMethod.FORMAT)(self._options)
             if not isinstance(formatted_obj, str):
@@ -83,7 +82,6 @@ class PrettyFormatter:
 
         for formatter in self._formatters:
             if formatter.has_valid_type(projected_obj, self._options.exact_type_matching):
-                print(f">>> {type(projected_obj) = }, {formatter.type = }")
                 return formatter(projected_obj, depth)
 
         return self._default_formatter(projected_obj, depth)
@@ -97,7 +95,6 @@ class PrettyFormatter:
 
         for projection in self._options.projections:
             if projection.has_valid_type(obj, exact_match=self._options.exact_type_matching):
-                print(f">>> {type(obj) = }, {projection.type = }")
                 return projection(obj)
 
         return obj
