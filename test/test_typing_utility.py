@@ -165,18 +165,10 @@ class TestHasValidType:
 
         type_collections = [types, generic_aliases]
         for T1, T2 in product(type_collections, type_collections):
-            # for t1 in T1:
-            #     for t2 in T2:
-            #         assert not has_valid_type(t1, t2)
             assert not any(has_valid_type(t1, t2) for t1 in T1 for t2 in T2)
 
         assert all(has_valid_type(t, type) for t in types)
-        # assert all(has_valid_type(t, GenericAlias) for t in generic_aliases)
-        for t in generic_aliases:
-            import pdb
-
-            pdb.set_trace()
-            assert has_valid_type(t, GenericAlias)
+        assert all(has_valid_type(t, GenericAlias) for t in generic_aliases)
 
 
 class TestTypeCmp:

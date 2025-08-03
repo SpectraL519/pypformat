@@ -1,5 +1,6 @@
 import sys
-from typing import Any, Union
+from types import GenericAlias
+from typing import Any, Union, get_origin
 
 if sys.version_info >= (3, 10):
     import types
@@ -7,6 +8,17 @@ if sys.version_info >= (3, 10):
     _union_type = types.UnionType
 else:
     _union_type = None
+
+
+BASE_TYPES = (object, Any)
+
+
+def is_type(obj: Any) -> bool:
+    return isinstance(obj, type) or isinstance(obj, GenericAlias)
+
+
+def unwrap_origin(t: type) -> type:
+    return get_origin(t) or t
 
 
 def is_union(t: type) -> bool:
@@ -17,16 +29,19 @@ def is_union(t: type) -> bool:
 
 
 def has_valid_type(obj: Any, t: type, exact_match: bool = False) -> bool:
-    if t is Any:
+    if t in BASE_TYPES:
         return True
 
     if is_union(t):
         return any(has_valid_type(obj, _t, exact_match) for _t in t.__args__)
 
-    return type(obj) is t if exact_match else isinstance(obj, t)
+    if isinstance(obj, GenericAlias):
+        return t is GenericAlias
 
-
-BASE_TYPES = (object, Any)
+    try:
+        return type(obj) is t if exact_match else is_subclass(type(obj), t)
+    except TypeError:
+        return False
 
 
 def is_subclass(t1: type, t2: type) -> bool:
@@ -40,9 +55,9 @@ def is_subclass(t1: type, t2: type) -> bool:
         return False
 
     if is_union(t2):
-        return any(issubclass(t1, t) for t in t2.__args__)
+        return any(is_subclass(t1, t) for t in t2.__args__)
 
-    return issubclass(t1, t2)
+    return issubclass(t1, unwrap_origin(t2))
 
 
 class Ordering:
